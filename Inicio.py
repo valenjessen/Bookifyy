@@ -1,5 +1,21 @@
 
 import streamlit as st
+from supabase import create_client, Client
+
+# Configurar conexión a Supabase
+url="https://adudbqxlncpmkaphctho.supabase.co"
+key= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWRicXhsbmNwbWthcGhjdGhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4MjU1NzAsImV4cCI6MjA2MDQwMTU3MH0.3N9v48CgDMtqBUw268vIp5ZhiAop-ceofPIYpvhCneE"
+supabase: Client = create_client(url, key)
+
+# Ejemplo: mostrar datos de una tabla
+#def cargar_datos():
+    # response = supabase.table("nombre_de_tu_tabla").select("*").execute()
+    # return response.data
+
+# Streamlit UI
+# st.title("Mi App con Supabase")
+# datos = cargar_datos()
+# st.write(datos)
 
 # --- Page Configuration (Optional but Recommended) ---
 st.set_page_config(
