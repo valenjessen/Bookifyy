@@ -26,29 +26,39 @@ st.set_page_config(
 )
 
 # --- Main Application ---
-st.title("App")
-
+st.title("Sign Up")
 
 # Check if the user is already logged in (using session state)
 if not st.session_state.get("logged_in", False):
     # If not logged in, show the login form
     with st.form("login_form"):
-        username = st.text_input("Username (any value)")
-        password = st.text_input("Password (any value)", type="password")
+        username = st.text_input("Mail institucional (@austral.edu.ar)")
+        name = st.text_input("Nombre")
+        surname = st.text_input("Apellido")
+        sexo = st.selectbox("Sexo", ["-", "Masculino", "Femenino"])
+        dni = st.text_input("DNI")
+        user_type = st.selectbox("Tipo de usuario", ["-", "Estudiante", "Docente", "Bibliotecario"])
+        password = st.text_input("Contraseña", type="password")
         submitted = st.form_submit_button("Login")
-
+        stay_signed_in = st.checkbox("Mantener sesión iniciada")
         if submitted:
             # For this demo, any username/password is accepted
-            if username and password:
+            if username and password and name:
                 st.session_state["logged_in"] = True
-                st.session_state["username"] = username # Optional: store username
-                st.success("Login successful!")
+                st.session_state["username"] = username  # Optional: store username
+                st.session_state["name"] = name  # Store the user's name
+                st.session_state["sexo"] = sexo
+                if sexo == "Masculino":
+                    st.session_state["welcome_message"] = f"Bienvenido, {name}"
+                elif sexo == "Femenino":
+                    st.session_state["welcome_message"] = f"Bienvenida, {name}"
+                st.success(f"¡Usuario creado con exito!")  # Mostrar el mensaje de bienvenida
             else:
-                st.error("Please enter both username and password.")
+                st.error("Por favor completar todos los campos.")
 else:
     # If logged in, show a welcome message
-    st.success(f"Welcome back, {st.session_state.get('username', 'User')}!")
-    st.info("Navigate using the sidebar on the left to manage different sections.")
+    st.success(st.session_state.get("welcome_message", "¡Bienvenido/a!"))
+    st.info("Navega utilizando el menú lateral.")
     #st.balloons() # Fun little animation
 
     # Optional: Add a logout button
