@@ -1,0 +1,6 @@
+5/7/2025
+para la prox clase emprolijar el sign up
+ya esta hecho lo bruto
+falta la parte css y emprolijar el codigo y los comentarios
+cambiar a ingles en functions.py add_persona y params
+NO TOCAR EL QUERY!!!
