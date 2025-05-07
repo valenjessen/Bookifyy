@@ -1,10 +1,11 @@
 import streamlit as st
 from supabase import create_client, Client
 
+##COSAS DE ANTES DE EL ARCHIVO APP
 # Configurar conexión a Supabase
-url="https://adudbqxlncpmkaphctho.supabase.co"
-key= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWRicXhsbmNwbWthcGhjdGhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4MjU1NzAsImV4cCI6MjA2MDQwMTU3MH0.3N9v48CgDMtqBUw268vIp5ZhiAop-ceofPIYpvhCneE"
-supabase: Client = create_client(url, key)
+# url="https://adudbqxlncpmkaphctho.supabase.co"
+# key= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWRicXhsbmNwbWthcGhjdGhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4MjU1NzAsImV4cCI6MjA2MDQwMTU3MH0.3N9v48CgDMtqBUw268vIp5ZhiAop-ceofPIYpvhCneE"
+# supabase: Client = create_client(url, key)
 
 # Ejemplo: mostrar datos de una tabla
 #def cargar_datos():
