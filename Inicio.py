@@ -17,6 +17,7 @@ supabase: Client = create_client(url, key)
 # datos = cargar_datos()
 # st.write(datos)
 
+#PARTE NUEVA
 # --- Page Configuration (Optional but Recommended) ---
 st.set_page_config(
     page_title="Bookify - Login",
