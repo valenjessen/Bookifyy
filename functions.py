@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import pandas as pd
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv("data.env")
 
 def connect_to_supabase():
     """
@@ -105,30 +105,24 @@ def add_person(dni, user_type, name, password, mail, gender):
     params = (dni, user_type, name, password, mail, gender)
     return execute_query(query, params=params, is_select=False)
 
-
 def verify_credentials(email, password):
-    # Consulta para verificar si existe el usuario con esas credenciales
     query = "SELECT EXISTS(SELECT 1 FROM persona WHERE mail_institucional = %s AND contrasena = %s)"
-    
-    # Pasar los parámetros como una tupla
     params = (email, password)
-    
-    # Ejecutar la consulta
     result = execute_query(query, params, is_select=True)
-    
-    # Si result tiene datos y el primer valor es 1, entonces existe
-    if result and result[0][0] == 1:
+
+    if not result.empty and result.iloc[0, 0] == 1:
         return True
     else:
         return False
 
 def get_user_info(email):
-    # Obtener información del usuario de tu base de datos según el email
-    # Devolver un diccionario con los detalles del usuario (nombre, sexo, etc.)
-    # Esta es una función de marcador de posición
-    params= (email)
-    query = "SELECT nombre,  FROM persona WHERE mail_institucional = %s )"
-    name= execute_query(query, params, is_select=True)
-    query = "SELECT sexo,  FROM persona WHERE mail_institucional = %s )"
-    gender= execute_query(query, params, is_select=True)
-    return {"nombre": name, "sexo": gender}  # Solo para pruebas
+    query = "SELECT nombre, sexo FROM persona WHERE mail_institucional = %s"
+    params = (email,)
+    result = execute_query(query, params, is_select=True)
+
+    if not result.empty:
+        nombre = result.iloc[0]["nombre"]
+        sexo = result.iloc[0]["sexo"]
+        return {"nombre": nombre, "sexo": sexo}
+    else:
+        return {"nombre": "Usuario", "sexo": ""}
