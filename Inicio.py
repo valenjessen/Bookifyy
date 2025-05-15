@@ -1,6 +1,8 @@
 import streamlit as st
 from supabase import create_client, Client
-from functions import add_persona
+from functions import add_person
+from functions import verify_credentials
+from functions import get_user_info
 
 ##COSAS DE ANTES DE EL ARCHIVO APP
 # Configurar conexión a Supabase
@@ -26,36 +28,75 @@ st.set_page_config(
     layout="centered" # "wide" or "centered"
 )
 
+
 # --- Main Application ---
 st.title("Sign Up")
 
 # Check if the user is already logged in (using session state)
 if not st.session_state.get("logged_in", False):
-    # If not logged in, show the login form
-    with st.form("login_form"):
-        mail_institucional = st.text_input("Mail institucional (@austral.edu.ar)")
-        nombre = st.text_input("Nombre y Apellido")
-        sexo = st.selectbox("Sexo", ["-", "Masculino", "Femenino"])
-        dni = st.text_input("DNI")
-        user_type = st.selectbox("Tipo de usuario", ["-", "Estudiante", "Docente", "Bibliotecario"])
-        contrasena = st.text_input("Contraseña", type="password")
-        submitted = st.form_submit_button("Login")
-        stay_signed_in = st.checkbox("Mantener sesión iniciada")
-        if submitted:
-            # For this demo, any username/password is accepted
-            if mail_institucional and contrasena and nombre and dni and user_type != "-":
-                st.session_state["logged_in"] = True
-                st.session_state["mail_institucional"] = mail_institucional  # Optional: store username
-                st.session_state["nombre"] = nombre  # Store the user's name
-                st.session_state["sexo"] = sexo
-                if sexo == "Masculino":
-                    st.session_state["welcome_message"] = f"Bienvenido, {nombre}"
-                elif sexo == "Femenino":
-                    st.session_state["welcome_message"] = f"Bienvenida, {nombre}"
-                st.success(f"¡Usuario creado con exito!")  # Mostrar el mensaje de bienvenida
-            else:
-                st.error("Por favor completar todos los campos.")
-    add_persona(dni, user_type, nombre, contrasena, mail_institucional)  # Call the function to add the user to the database
+    # Option to login or register
+    login_option = st.radio("", ["Crear nueva cuenta", "Ya tengo una cuenta"], horizontal=True)
+    
+    if login_option == "Crear nueva cuenta":
+        # If not logged in, show the signup form
+        with st.form("signup_form"):
+            mail = st.text_input("Mail institucional (@austral.edu.ar)")
+            name = st.text_input("Nombre y Apellido")
+            gender= st.selectbox("Sexo", ["-", "Masculino", "Femenino"])
+            dni = st.text_input("DNI")
+            user_type = st.selectbox("Tipo de usuario", ["-", "Estudiante", "Docente", "Bibliotecario"])
+            password = st.text_input("Contraseña", type="password")
+            submitted = st.form_submit_button("Sign up")
+            stay_signed_in = st.checkbox("Mantener sesión iniciada")
+            if submitted:
+                # For this demo, any username/password is accepted
+                if mail and password and name and dni and user_type != "-":
+                    st.session_state["logged_in"] = True
+                    st.session_state["mail_institucional"] = mail  # Optional: store username
+                    st.session_state["nombre"] = name  # Store the user's name
+                    st.session_state["sexo"] = gender
+                    if gender == "Masculino":
+                        st.session_state["welcome_message"] = f"Bienvenido, {name}"
+                    elif gender == "Femenino":
+                        st.session_state["welcome_message"] = f"Bienvenida, {name}"
+                    st.success(f"¡Usuario creado con exito!")  # Mostrar el mensaje de bienvenida
+                else:
+                    st.error("Por favor completar todos los campos.")
+        add_person(dni, user_type, name, password, mail, gender)  # Call the function to add the user to the database
+    
+    else:  # "Ya tengo una cuenta"
+        # Show login form for existing users
+        with st.form("login_form"):
+            login_mail = st.text_input("Mail institucional (@austral.edu.ar)")
+            login_password = st.text_input("Contraseña", type="password")
+            login_submitted = st.form_submit_button("Iniciar sesión")
+            stay_signed_in = st.checkbox("Mantener sesión iniciada")
+            
+            if login_submitted:
+                if login_mail and login_password:
+                    # Aquí verificarías las credenciales contra tu base de datos
+                    if verify_credentials(login_mail, login_password):  # Función que deberás implementar
+                        # Obtener datos del usuario
+                        user_info = get_user_info(login_mail)  # Función que deberás implementar
+                        
+                        st.session_state["logged_in"] = True
+                        st.session_state["mail_institucional"] = login_mail
+                        st.session_state["nombre"] = user_info.get("nombre", "Usuario")
+                        st.session_state["sexo"] = user_info.get("sexo", "")
+                        
+                        # Establecer mensaje de bienvenida según género
+                        if user_info.get("sexo") == "Masculino":
+                            st.session_state["welcome_message"] = f"Bienvenido, {user_info.get('nombre')}"
+                        elif user_info.get("sexo") == "Femenino":
+                            st.session_state["welcome_message"] = f"Bienvenida, {user_info.get('nombre')}"
+                        else:
+                            st.session_state["welcome_message"] = f"Bienvenido/a, {user_info.get('nombre')}"
+                            
+                        st.success("¡Inicio de sesión exitoso!")
+                    else:
+                        st.error("Credenciales incorrectas. Por favor, intente nuevamente.")
+                else:
+                    st.error("Por favor ingrese su mail y contraseña.")
 else:
     # If logged in, show a welcome message
     st.success(st.session_state.get("welcome_message", "¡Bienvenido/a!"))

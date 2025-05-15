@@ -39,8 +39,7 @@ def connect_to_supabase():
         print(f"Error connecting to Supabase database: {e}")
         return None
 
-
-def execute_query(query, conn=None, is_select=True):
+def execute_query(query, params=None, conn=None, is_select=True):
     """
     Executes a SQL query and returns the results as a pandas DataFrame for SELECT queries,
     or executes DML operations (INSERT, UPDATE, DELETE) and returns success status.
@@ -65,7 +64,10 @@ def execute_query(query, conn=None, is_select=True):
         
         # Create cursor and execute query
         cursor = conn.cursor()
-        cursor.execute(query)
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
         
         if is_select:
             # Fetch all results for SELECT queries
@@ -95,12 +97,38 @@ def execute_query(query, conn=None, is_select=True):
             conn.rollback()
         return pd.DataFrame() if is_select else False
 
-def add_persona(dni, clasificacion, nombre,  contrasena, mail_institucional):
+def add_person(dni, user_type, name, password, mail, gender):
+    query = """
+    INSERT INTO persona (dni, clasificacion, carrera, facultad, nombre, contrasena, mail_institucional, sexo)
+    VALUES (%s, %s, NULL, NULL, %s, %s, %s, %s)
     """
-    Adds a new user to the user table.
-    """
-
-    query = "INSERT INTO persona (dni, clasificacion, nombre, contrasena, mail_institucional)  VALUES (%s, %s, %s, %s, %s)"
-    params = (dni, clasificacion, nombre,  contrasena, mail_institucional)
-    
+    params = (dni, user_type, name, password, mail, gender)
     return execute_query(query, params=params, is_select=False)
+
+
+def verify_credentials(email, password):
+    # Consulta para verificar si existe el usuario con esas credenciales
+    query = "SELECT EXISTS(SELECT 1 FROM persona WHERE mail_institucional = %s AND contrasena = %s)"
+    
+    # Pasar los parámetros como una tupla
+    params = (email, password)
+    
+    # Ejecutar la consulta
+    result = execute_query(query, params, is_select=True)
+    
+    # Si result tiene datos y el primer valor es 1, entonces existe
+    if result and result[0][0] == 1:
+        return True
+    else:
+        return False
+
+def get_user_info(email):
+    # Obtener información del usuario de tu base de datos según el email
+    # Devolver un diccionario con los detalles del usuario (nombre, sexo, etc.)
+    # Esta es una función de marcador de posición
+    params= (email)
+    query = "SELECT nombre,  FROM persona WHERE mail_institucional = %s )"
+    name= execute_query(query, params, is_select=True)
+    query = "SELECT sexo,  FROM persona WHERE mail_institucional = %s )"
+    gender= execute_query(query, params, is_select=True)
+    return {"nombre": name, "sexo": gender}  # Solo para pruebas
