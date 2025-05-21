@@ -20,6 +20,7 @@ from functions import get_user_info
 # datos = cargar_datos()
 # st.write(datos)
 
+
 #PARTE NUEVA
 # --- Page Configuration (Optional but Recommended) ---
 st.set_page_config(
@@ -27,6 +28,38 @@ st.set_page_config(
     page_icon="🛒",
     layout="centered" # "wide" or "centered"
 )
+import streamlit as st
+from streamlit_option_menu import option_menu
+
+import streamlit as st
+
+import streamlit as st
+
+st.markdown("""
+    <style>
+    /* Cambiar color del texto general de la app */
+    .stApp {
+        color: #75510e !important;
+    }
+
+    /* Personalizar el ícono de hamburguesa */
+    [data-testid="collapsedControl"]::before {
+        content: "\\2261";  /* Unicode para ≡ */
+        font-size: 24px;
+        color: #31333F;
+        position: relative;
+        top: 2px;
+        left: 2px;
+        font-weight: bold;
+    }
+
+    /* Cambiar fondo y texto del sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #f5e0b9;
+        color: #75510e !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 
 # --- Main Application ---
