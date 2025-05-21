@@ -4,3 +4,6 @@ ya esta hecho lo bruto
 falta la parte css y emprolijar el codigo y los comentarios
 cambiar a ingles en functions.py add_persona y params
 NO TOCAR EL QUERY!!!
+
+BACK
+clause, usuario: vjessen...austral, nombre: library managment app development
