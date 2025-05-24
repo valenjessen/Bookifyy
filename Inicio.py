@@ -29,11 +29,6 @@ st.set_page_config(
     layout="centered" # "wide" or "centered"
 )
 import streamlit as st
-from streamlit_option_menu import option_menu
-
-import streamlit as st
-
-import streamlit as st
 
 st.markdown("""
     <style>
@@ -80,7 +75,7 @@ if not st.session_state.get("logged_in", False):
             user_type = st.selectbox("Tipo de usuario", ["-", "Estudiante", "Docente", "Bibliotecario"])
             password = st.text_input("Contraseña", type="password")
             submitted = st.form_submit_button("Sign up")
-            stay_signed_in = st.checkbox("Mantener sesión iniciada")
+           
             if submitted:
                 # For this demo, any username/password is accepted
                 if mail and password and name and dni and user_type != "-":
@@ -103,7 +98,7 @@ if not st.session_state.get("logged_in", False):
             login_mail = st.text_input("Mail institucional (@austral.edu.ar)")
             login_password = st.text_input("Contraseña", type="password")
             login_submitted = st.form_submit_button("Iniciar sesión")
-            stay_signed_in = st.checkbox("Mantener sesión iniciada")
+   
             
             if login_submitted:
                 if login_mail and login_password:
