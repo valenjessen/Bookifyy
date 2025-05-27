@@ -1,5 +1,11 @@
--Hay archivos dobles, de lso que hay dos los que estan como definitivos por ahora son:
-inicio.py (los 1 2 y 3 son versiones viejas qu eno funcionan que va a haber que borrar)
+--Falta:
+-vistas: menos inicio (en esta NO mover el boton de usuario a la derecha, se pira todo)
+
+--Hay archivos dobles, de lso que hay dos los que estan como definitivos por ahora son:
+-inicio.py (los 1 2 y 3 son versiones viejas que no funcionan que va a haber que borrar)
+
+--Cosas a saber:
+-NO usar st.set_page_config() en las pags individuales (solo esta en inicio). va a tirar error inicio si lo hacemos. pedir SIEMPRE  a chat q no lo use
 -el sidebar esta configurado en inicio, no hay que configurarlo en el resto de las pags
 -todo lo que esta en las otras pags que no son inicio son estructuras que armo chat, TODO se puede borrar, a menos que parezca que sirve diria de 
 borrar y hacer de cero

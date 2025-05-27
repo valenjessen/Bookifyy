@@ -84,6 +84,36 @@ st.markdown("""
         color: var(--color-secondary);
     }
     
+    /* Botón de usuario en la esquina superior derecha */
+    .user-button-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 999;
+    }
+    
+    .user-button {
+        background-color: var(--color-primary);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .user-button:hover {
+        background-color: var(--color-secondary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
     /* Botones personalizados */
     .stButton > button {
         background-color: var(--color-primary);
@@ -284,10 +314,20 @@ else:
     user_type = st.session_state.get("user_type", "")
     nombre = st.session_state.get("nombre", "Usuario")
     
+    # Botón de usuario en la esquina superior derecha (se mantiene en todas las páginas)
+    st.markdown("""
+        <div class="user-button-container">
+    """, unsafe_allow_html=True)
+    
+    if st.button("👤", key="user_profile_btn", help="Mi perfil"):
+        st.session_state.current_page = "user"
+        st.rerun()
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+    
     # Sidebar con navegación
     with st.sidebar:
         st.markdown(f"### Hola, {nombre}")
-        st.markdown(f"**Rol:** {user_type}")
         st.markdown("---")
         st.markdown("### Menú Principal")
         
@@ -319,25 +359,13 @@ else:
             <div class="welcome-container">
                 <div>
                     <h2 class="welcome-message">{st.session_state.get('welcome_message', '¡Bienvenido/a!')}</h2>
-                    <p class="welcome-subtitle">¿Qué te gustaría hacer hoy?</p>
-                </div>
+                    
+    
             </div>
         """, unsafe_allow_html=True)
         
         # Mostrar información del usuario
         col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            st.info(f"**Rol:** {user_type}")
-            if user_type == "Bibliotecario":
-                st.markdown("**Funciones disponibles:**")
-                st.markdown("- 📚 Gestión de libros")
-                st.markdown("- 👥 Ver préstamos activos")
-                st.markdown("- 📋 Administrar listas de espera")
-            else:
-                st.markdown("**Funciones disponibles:**")
-                st.markdown("- 🔍 Buscar libros")
-                st.markdown("- 📖 Solicitar préstamos")
-                st.markdown("- 📚 Ver mis préstamos")
     
     elif current_page == "search":
         # --- PÁGINA DE BÚSQUEDA ---
@@ -377,6 +405,26 @@ else:
                 
         except Exception as e:
             st.error("Error al cargar la página de préstamos")
+            st.error(f"Detalle del error: {str(e)}")
+            st.session_state.current_page = "home"
+            if st.button("Volver al inicio"):
+                st.rerun()
+    
+    elif current_page == "user":
+        # --- PÁGINA DE USUARIO ---
+        st.title("👤 Mi Perfil")
+        
+        try:
+            if user_type == "Bibliotecario":
+                # Importar dinámicamente solo cuando sea necesario
+                from pages_biblio import user_biblio
+               
+            else:
+                # Importar dinámicamente solo cuando sea necesario
+                from pages_alumno import user_alumno
+                
+        except Exception as e:
+            st.error("Error al cargar la página de usuario")
             st.error(f"Detalle del error: {str(e)}")
             st.session_state.current_page = "home"
             if st.button("Volver al inicio"):
