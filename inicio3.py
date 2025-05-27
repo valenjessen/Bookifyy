@@ -3,6 +3,8 @@ from supabase import create_client, Client
 from functions import add_person
 from functions import verify_credentials
 from functions import get_user_info
+from pages_alumno import busqueda_libros_alumno, mis_prestamos_alumno, user_alumno
+from pages_biblio import busqueda_libros_biblio, prestamos_biblio
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -125,7 +127,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Check if the user is already logged in
-if not st.session_state.get("logged_in", False):
+if not st.session_state.get("logged_in", True):
     
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     
@@ -215,23 +217,32 @@ if not st.session_state.get("logged_in", False):
     st.markdown('</div>', unsafe_allow_html=True)
 
 else:
-    # If logged in, redirect based on user type
-    st.success(st.session_state.get("welcome_message", "¡Bienvenido/a!"))
-    
+
     user_type = st.session_state.get("user_type", "")
-    
     if user_type == "Bibliotecario":
-        st.info("Redirigiendo al panel de bibliotecario...")
-        st.markdown("**Funciones disponibles:**")
-        st.markdown("- Gestión de libros")
-        st.markdown("- Ver préstamos activos")
-        st.markdown("- Administrar listas de espera")
+        st.success(st.session_state.get("welcome_message", "¡Bienvenido/a!"))
+        st.subheader("welcome message")
+        with st.sidebar:
+            st.markdown("### Menú Principal")
+            if st.button("🏠 Inicio", use_container_width=True): current_page="home"
+            if st.button("📚 Buscar libros", use_container_width=True): busqueda_libros_biblio.mostrar()
+            if st.button("🤝 Préstamos", use_container_width=True): prestamos_biblio.mostrar()
+            st.markdown("---")
+            if st.button("🔓 Log Out", use_container_width=True):
+                st.session_state.clear()
+                st.rerun()
     else:
-        st.info("Redirigiendo al panel de estudiante/profesor...")
-        st.markdown("**Funciones disponibles:**")
-        st.markdown("- Buscar libros")
-        st.markdown("- Solicitar préstamos")
-        st.markdown("- Ver mis préstamos")
+        st.success(st.session_state.get("welcome_message", "¡Bienvenido/a!"))
+        st.subheader("welcome message")
+        with st.sidebar:
+            st.markdown("### Menú Principal")
+            if st.button("🏠 Inicio", use_container_width=True): current_page="home"
+            if st.button("📚 Buscar libros", use_container_width=True): busqueda_libros_alumno.mostrar()
+            if st.button("🤝 Préstamos", use_container_width=True): mis_prestamos_alumno.mostrar()
+            st.markdown("---")
+            if st.button("🔓 Log Out", use_container_width=True):
+                st.session_state.clear()
+                st.rerun()
     
     col1, col2, col3 = st.columns(3)
     with col2:
@@ -239,3 +250,49 @@ else:
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
             st.rerun()
+
+
+
+
+
+# else:
+#     # If logged in, redirect based on user type
+#     st.success(st.session_state.get("welcome_message", "¡Bienvenido/a!"))
+    
+#     user_type = st.session_state.get("user_type", "")
+    
+#     if user_type == "Bibliotecario":
+#         st.info("Redirigiendo al panel de bibliotecario...")
+#         st.markdown("**Funciones disponibles:**")
+#         st.markdown("- Gestión de libros")
+#         st.markdown("- Ver préstamos activos")
+#         st.markdown("- Administrar listas de espera")
+#     else:
+#         st.info("Redirigiendo al panel de estudiante/profesor...")
+#         st.markdown("**Funciones disponibles:**")
+#         st.markdown("- Buscar libros")
+#         st.markdown("- Solicitar préstamos")
+#         st.markdown("- Ver mis préstamos")
+
+#     with st.sidebar:
+#             st.markdown("### Menú Principal")
+#             if st.button("🏠 Inicio", use_container_width=True): st.session_state.current_page='home'
+#             if st.button("📚 Buscar libros", use_container_width=True): st.session_state.current_page='search'
+#             if st.button("🤝 Préstamos", use_container_width=True): st.session_state.current_page='loans'
+#             st.markdown("---")
+#             if st.button("🔓 Log Out", use_container_width=True):
+#                 st.session_state.clear()
+#                 st.rerun()
+
+#     page = st.session_state.get('current_page','home')
+#     user_type = st.session_state.get('user_type','')
+    
+#     if page == 'home':
+#         st.markdown(f"<div style='display:flex;justify-content:center;align-items:center;height:70vh;'><h2>{st.session_state.get('welcome_message')}</h2></div>", unsafe_allow_html=True)
+#     elif page == 'search':
+#         if user_type == "Bibliotecario": busqueda_libros_biblio.mostrar()
+#         else: busqueda_libros_alumno.mostrar()
+#     elif page == 'loans':
+#         if user_type == "Bibliotecario": prestamos_biblio.mostrar()
+#         else: mis_prestamos_alumno.mostrar()
+    

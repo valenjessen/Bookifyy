@@ -1,9 +1,138 @@
-5/7/2025
-para la prox clase emprolijar el sign up
-ya esta hecho lo bruto
-falta la parte css y emprolijar el codigo y los comentarios
-cambiar a ingles en functions.py add_persona y params
-NO TOCAR EL QUERY!!!
+-Hay archivos dobles, de lso que hay dos los que estan como definitivos por ahora son:
+inicio.py (los 1 2 y 3 son versiones viejas qu eno funcionan que va a haber que borrar)
+-el sidebar esta configurado en inicio, no hay que configurarlo en el resto de las pags
+-todo lo que esta en las otras pags que no son inicio son estructuras que armo chat, TODO se puede borrar, a menos que parezca que sirve diria de 
+borrar y hacer de cero
+- para correr un archivo dentro de carpeta: streamlit run carpeta/archivo (diria de correr inicio y tratar de acceder ala pag desde inicio)
+asi nos aseguramos que esata todo conectado
+-estructura que da los colores y letering que queremos a pegar en todos los archivos:
 
-BACK
-clause, usuario: vjessen...austral, nombre: library managment app development
+st.markdown("""
+    <style>
+    /* Importar Libre Baskerville */
+    @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+    
+    /* Colores de la marca */
+    :root {
+        --color-primary: #75510e;
+        --color-secondary: #b9985a;
+        --color-light: #f5e0b9;
+        --color-lightest: #fef8ee;
+    }
+    
+    /* Aplicar fuente y colores generales */
+    .stApp {
+        background-color: var(--color-lightest);
+        color: var(--color-primary);
+        font-family: 'Libre Baskerville', serif;
+    }
+    
+    .logo-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 0;
+        font-family: 'Libre Baskerville', serif;
+        text-align: center;
+    }
+    
+    .logo-subtitle {
+        font-size: 1.2rem;
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+        text-align: center;
+    }
+    
+    .welcome-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 60vh;
+        text-align: center;
+    }
+    
+    .welcome-message {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        margin-bottom: 1rem;
+    }
+    
+    .welcome-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.8;
+        color: var(--color-secondary);
+    }
+    
+    /* Botones personalizados */
+    .stButton > button {
+        background-color: var(--color-primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-family: 'Libre Baskerville', serif;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        background-color: var(--color-secondary);
+        transform: translateY(-2px);
+    }
+    
+    /* Inputs personalizados */
+    .stTextInput > div > div > input,
+    .stSelectbox > div > div > select {
+        border: 2px solid var(--color-light);
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-family: 'Libre Baskerville', serif;
+    }
+    
+    .stTextInput > div > div > input:focus,
+    .stSelectbox > div > div > select:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(117, 81, 14, 0.1);
+    }
+    
+    /* Radio buttons */
+    .stRadio > div {
+        background-color: var(--color-light);
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+    
+    /* Formulario */
+    .stForm {
+        background-color: var(--color-lightest);
+        padding: 2rem;
+        border-radius: 10px;
+        border: 1px solid var(--color-light);
+    }
+    
+    /* Mensajes de éxito y error */
+    .stSuccess {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+    
+    .stError {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
+    
+    /* Sidebar personalizado */
+    .css-1d391kg {
+        background-color: var(--color-light);
+    }
+    
+    /* Ocultar elementos innecesarios */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
