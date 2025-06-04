@@ -1,5 +1,4 @@
 import streamlit as st
-from supabase import create_client, Client
 
 # Importar solo las funciones necesarias inicialmente
 from functions import add_person, verify_credentials, get_user_info
@@ -109,15 +108,15 @@ st.markdown("""
     }
     
     .user-button:hover {
-        background-color: var(--color-secondary);
+        background-color: #75510e;
         transform: translateY(-2px);
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     
     /* Botones personalizados */
     .stButton > button {
-        background-color: var(--color-primary);
-        color: white;
+        background-color: #b9985a);
+        color: brown;
         border: none;
         border-radius: 8px;
         padding: 0.75rem 2rem;
@@ -128,7 +127,7 @@ st.markdown("""
     }
     
     .stButton > button:hover {
-        background-color: var(--color-secondary);
+        background-color: #75510e);
         transform: translateY(-2px);
     }
     
@@ -178,7 +177,7 @@ st.markdown("""
     
     /* Sidebar personalizado */
     .css-1d391kg {
-        background-color: var(--color-light);
+        background-color: #f5e0b9;
     }
     
     /* Ocultar elementos innecesarios */
@@ -324,12 +323,21 @@ else:
         st.rerun()
     
     st.markdown("</div>", unsafe_allow_html=True)
-    
+    st.markdown(
+    """
+    <style>
+        [data-testid="stSidebar"] {
+            background-color: #f5e0b9; /* Cambia este color a gusto */
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
     # Sidebar con navegación
     with st.sidebar:
         st.markdown(f"### Hola, {nombre}")
         st.markdown("---")
-        st.markdown("### Menú Principal")
         
         if st.button("🏠 Inicio", use_container_width=True, key="nav_home"):
             st.session_state.current_page = "home"
