@@ -26,6 +26,7 @@ if "current_page" not in st.session_state:
 # DEBUG: Mostrar estado actual (comentar en producción)
 # st.sidebar.write("DEBUG - Estado actual:", st.session_state)
 
+
 # --- CSS Styling ---
 st.markdown("""
     <style>
@@ -92,7 +93,7 @@ st.markdown("""
     }
     
     .user-button {
-        background-color: var(--color-primary);
+        background-color: #b9985a;
         color: white;
         border: none;
         border-radius: 50%;
@@ -115,8 +116,8 @@ st.markdown("""
     
     /* Botones personalizados */
     .stButton > button {
-        background-color: #b9985a);
-        color: brown;
+        background-color: #b9985a;   /* fixed */
+        color: white;                /* for contrast */
         border: none;
         border-radius: 8px;
         padding: 0.75rem 2rem;
@@ -127,7 +128,8 @@ st.markdown("""
     }
     
     .stButton > button:hover {
-        background-color: #75510e);
+        background-color: #75510e;   /* fixed */
+        color: white;
         transform: translateY(-2px);
     }
     
@@ -176,8 +178,8 @@ st.markdown("""
     }
     
     /* Sidebar personalizado */
-    .css-1d391kg {
-        background-color: #f5e0b9;
+    section[data-testid="stSidebar"] {
+        background-color: #b9985a !important;
     }
     
     /* Ocultar elementos innecesarios */

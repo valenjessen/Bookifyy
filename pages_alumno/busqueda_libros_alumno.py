@@ -186,7 +186,7 @@ def get_books():
 df = get_books()
 
 if not df.empty:
-    st.write(f"**{len(df)} libros disponibles**")
+    st.write(f"*{len(df)} libros disponibles*")
     st.markdown("---")
     
     # Crear columnas para el layout de tarjetas
@@ -203,10 +203,10 @@ if not df.empty:
                         width=150)
                 
                 # Título del libro
-                st.markdown(f"**{row['titulo']}**")
+                st.markdown(f"*{row['titulo']}*")
                 
                 # Autor
-                st.markdown(f"*por {row['autor']}*")
+                st.markdown(f"por {row['autor']}")
                 
                 # Estado de disponibilidad
                 if row['disponibilidad']:
@@ -239,11 +239,11 @@ if not df.empty:
         
         with col2:
             st.markdown(f"### {selected_book['titulo']}")
-            st.markdown(f"**Autor:** {selected_book['autor']}")
-            st.markdown(f"**Editorial/Edición:** {selected_book['editoria_edicion']}")
-            st.markdown(f"**Biblioteca:** {selected_book['biblioteca']}")
-            st.markdown(f"**Ubicación:** {selected_book['ubicacion']}")
-            st.markdown(f"**ID:** {selected_book['numero_de_id']}")
+            st.markdown(f"*Autor:* {selected_book['autor']}")
+            st.markdown(f"*Editorial/Edición:* {selected_book['editoria_edicion']}")
+            st.markdown(f"*Biblioteca:* {selected_book['biblioteca']}")
+            st.markdown(f"*Ubicación:* {selected_book['ubicacion']}")
+            st.markdown(f"*ID:* {selected_book['numero_de_id']}")
             
             # Estado
             if selected_book['disponibilidad']:
