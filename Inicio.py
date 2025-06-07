@@ -254,7 +254,6 @@ if not st.session_state.logged_in:
                             st.session_state.welcome_message = f"Bienvenido/a, {name}"
                         
                         st.success("¡Usuario creado con éxito! Redirigiendo...")
-                    
                         st.rerun()
                     except Exception as e:
                         st.error(f"Error al crear el usuario: {str(e)}")
@@ -298,7 +297,6 @@ if not st.session_state.logged_in:
                                 st.session_state.welcome_message = f"Bienvenido/a, {user_info.get('nombre')}"
                             
                             st.success("¡Inicio de sesión exitoso! Redirigiendo...")
-                          
                             st.rerun()
                         else:
                             st.error("Credenciales incorrectas. Por favor, intente nuevamente.")
@@ -369,12 +367,11 @@ else:
             <div class="welcome-container">
                 <div>
                     <h2 class="welcome-message">{st.session_state.get('welcome_message', '¡Bienvenido/a!')}</h2>
-                    
-    
+                </div>
             </div>
         """, unsafe_allow_html=True)
         
-        # Mostrar información del usuario
+        # Mostrar información del usuario (aquí no cambia nada)
         col1, col2, col3 = st.columns([1, 2, 1])
     
     elif current_page == "search":
@@ -384,13 +381,13 @@ else:
         
         try:
             if user_type == "Bibliotecario":
-                # Importar dinámicamente solo cuando sea necesario
-                from pages_biblio import busqueda_libros_biblio
-                
+                # Importar y ejecutar la vista de búsqueda para bibliotecario
+                from pages_biblio.busqueda_libros_biblio import busqueda_libros_biblio
+                busqueda_libros_biblio()
             else:
-                # Importar dinámicamente solo cuando sea necesario
-                from pages_alumno import busqueda_libros_alumno
-                
+                # Importar y ejecutar la vista de búsqueda para alumno
+                from pages_alumno.busqueda_libros_alumno import busqueda_libros_alumno
+                busqueda_libros_alumno()
         except Exception as e:
             st.error("Error al cargar la página de búsqueda")
             st.error(f"Detalle del error: {str(e)}")
@@ -405,14 +402,14 @@ else:
         try:
             if user_type == "Bibliotecario":
                 st.markdown("Gestión de préstamos (Bibliotecario)")
-                # Importar dinámicamente solo cuando sea necesario
-                from pages_biblio import prestamos_biblio
-                
+                # Importar y ejecutar la vista de préstamos (bibliotecario)
+                from pages_biblio.prestamos_biblio import prestamos_biblio
+                prestamos_biblio()
             else:
                 st.markdown("Mis préstamos")
-                # Importar dinámicamente solo cuando sea necesario
-                from pages_alumno import mis_prestamos_alumno
-                
+                # Importar y ejecutar la vista de préstamos (alumno)
+                from pages_alumno.mis_prestamos_alumno import mis_prestamos_alumno
+                mis_prestamos_alumno()
         except Exception as e:
             st.error("Error al cargar la página de préstamos")
             st.error(f"Detalle del error: {str(e)}")
@@ -422,17 +419,13 @@ else:
     
     elif current_page == "user":
         # --- PÁGINA DE USUARIO ---
-        st.title("👤 Mi Perfil")
-        
         try:
             if user_type == "Bibliotecario":
-                # Importar dinámicamente solo cuando sea necesario
-                from pages_biblio import user_biblio
-               
+                from pages_biblio.user_biblio import user_biblio
+                user_biblio()
             else:
-                # Importar dinámicamente solo cuando sea necesario
-                from pages_alumno import user_alumno
-                
+                from pages_alumno.user_alumno import user_alumno
+                user_alumno()
         except Exception as e:
             st.error("Error al cargar la página de usuario")
             st.error(f"Detalle del error: {str(e)}")

@@ -1,10 +1,13 @@
---Falta:
--vistas: menos inicio (en esta NO mover el boton de usuario a la derecha, se pira todo)
+cosas nuevas: la primer cosa a saber
 
---Hay archivos dobles, de lso que hay dos los que estan como definitivos por ahora son:
--inicio.py (los 1 2 y 3 son versiones viejas que no funcionan que va a haber que borrar)
+--Falta:
+-prestamos
+-agregar form de busqueda por titulo en busqueda_libros
+-arreglar cambio de contrasena de user
+-todo biblio (casi igual q alumno, mucho copy paste)
 
 --Cosas a saber:
+-LAS VISTAS TIENEN TODAS QUE ARRANCAR CON def nombre_del_archivo():, y que TODO lo de esa pagina este dentro de esto, salvo el pass
 -NO usar st.set_page_config() en las pags individuales (solo esta en inicio). va a tirar error inicio si lo hacemos. pedir SIEMPRE  a chat q no lo use
 -el sidebar esta configurado en inicio, no hay que configurarlo en el resto de las pags
 -todo lo que esta en las otras pags que no son inicio son estructuras que armo chat, TODO se puede borrar, a menos que parezca que sirve diria de 

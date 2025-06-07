@@ -114,6 +114,7 @@ def user_alumno():
                 submitted_academic = st.form_submit_button("Guardar información académica")
 
                 if submitted_academic:
+                    
                     if facultad_input and carrera_input:
                         try:
                             success = update_user_academic_info(facultad_input, carrera_input, mail_usuario)
@@ -183,4 +184,4 @@ def user_alumno():
         st.error("No se pudo cargar la información del usuario")
 
 # Ejecutar la función
-user_alumno()
+pass

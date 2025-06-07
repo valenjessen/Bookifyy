@@ -138,14 +138,19 @@ def get_user_complete_info(email):
     params = (email,)
     return execute_query(query, params, is_select=True)
 
-def update_user_password(email, new_password):
+def update_user_password(new_password, email):
     """Actualiza la contraseña de un usuario"""
     query = "UPDATE persona SET contrasena = %s WHERE mail_institucional = %s"
     params = (new_password, email)
     return execute_query(query, params, is_select=False)
 
-def update_user_academic_info(facultad, carrera, email): 
-    """Actualiza la información académica (facultad y carrera) de un usuario"""
-    query = "UPDATE persona SET facultad = %s, carrera = %s WHERE mail_institucional = %s"
+
+def update_user_academic_info(facultad, carrera, email):
+    """
+    Actualiza la información académica de la persona
+    referenciando su clave primaria (mail_institucional ).
+    """
+    query = " UPDATE persona SET facultad = %s, carrera  = %s WHERE mail_institucional = %s"
     params = (facultad, carrera, email)
     return execute_query(query, params, is_select=False)
+
