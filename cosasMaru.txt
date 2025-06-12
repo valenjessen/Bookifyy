@@ -1,0 +1,524 @@
+Para agregar portadas (paso a paso):
+Opción 1: Si tienes URLs de imágenes
+
+Agrega una columna portada a tu tabla libros en Supabase
+Llena esa columna con URLs de imágenes (ej: https://example.com/portada1.jpg)
+Cambia el código de la imagen por:
+st.image(row['portada'] if pd.notna(row['portada']) else "https://via.placeholder.com/150x200/cccccc/666666?text=Sin+Portada")
+
+Opción A: Manual (más control)
+
+Agregas una columna portada en Supabase
+Subes las imágenes donde quieras (Google Drive, Imgur, etc.)
+Pegas las URLs en la base de datos
+
+codigo css para cada pag
+# --- CSS Styling ---
+st.markdown("""
+    <style>
+    /* Importar Libre Baskerville */
+    @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+    
+    /* Colores de la marca */
+    :root {
+        --color-primary: #75510e;
+        --color-secondary: #b9985a;
+        --color-light: #f5e0b9;
+        --color-lightest: #fef8ee;
+    }
+    
+    /* Aplicar fuente y colores generales */
+    .stApp {
+        background-color: var(--color-lightest);
+        color: var(--color-primary);
+        font-family: 'Libre Baskerville', serif;
+    }
+    
+    .logo-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 0;
+        font-family: 'Libre Baskerville', serif;
+        text-align: center;
+    }
+    
+    .logo-subtitle {
+        font-size: 1.2rem;
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+        text-align: center;
+    }
+    
+    .welcome-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 60vh;
+        text-align: center;
+    }
+    
+    .welcome-message {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        margin-bottom: 1rem;
+    }
+    
+    .welcome-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.8;
+        color: var(--color-secondary);
+    }
+    
+    /* Botón de usuario en la esquina superior derecha */
+    .user-button-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 999;
+    }
+    
+    .user-button {
+        background-color: var(--color-primary);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .user-button:hover {
+        background-color: #75510e;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    /* Botones personalizados */
+    .stButton > button {
+        background-color: #b9985a);
+        color: brown;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-family: 'Libre Baskerville', serif;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        background-color: #75510e);
+        transform: translateY(-2px);
+    }
+    
+    /* Inputs personalizados */
+    .stTextInput > div > div > input,
+    .stSelectbox > div > div > select {
+        border: 2px solid var(--color-light);
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-family: 'Libre Baskerville', serif;
+    }
+    
+    .stTextInput > div > div > input:focus,
+    .stSelectbox > div > div > select:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(117, 81, 14, 0.1);
+    }
+    
+    /* Radio buttons */
+    .stRadio > div {
+        background-color: var(--color-light);
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+    
+    /* Formulario */
+    .stForm {
+        background-color: var(--color-lightest);
+        padding: 2rem;
+        border-radius: 10px;
+        border: 1px solid var(--color-light);
+    }
+    
+    /* Mensajes de éxito y error */
+    .stSuccess {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+    
+    .stError {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
+    
+    /* Sidebar personalizado */
+    .css-1d391kg {
+        background-color: #f5e0b9;
+    }
+    
+    /* Ocultar elementos innecesarios */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
+
+CODIGO BUSQUEDA DE LIBROS CON DEBUG
+import streamlit as st
+
+# --- CSS Styling ---
+st.markdown("""
+    <style>
+    /* Importar Libre Baskerville */
+    @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+    
+    /* Colores de la marca */
+    :root {
+        --color-primary: #75510e;
+        --color-secondary: #b9985a;
+        --color-light: #f5e0b9;
+        --color-lightest: #fef8ee;
+    }
+    
+    /* Aplicar fuente y colores generales */
+    .stApp {
+        background-color: var(--color-lightest);
+        color: var(--color-primary);
+        font-family: 'Libre Baskerville', serif;
+    }
+    
+    /* Botones personalizados */
+    .stButton > button {
+        background-color: #b9985a;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-family: 'Libre Baskerville', serif;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        background-color: #75510e;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    /* Estilo para el contenedor de detalles */
+    .book-detail-container {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin: 1rem 0;
+    }
+    
+    .book-info-row {
+        margin-bottom: 1rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--color-light);
+    }
+    
+    .info-label {
+        font-weight: 700;
+        color: var(--color-primary);
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+        color: var(--color-secondary);
+        font-size: 1.1rem;
+    }
+    
+    /* Estilo para mensajes de estado */
+    .status-box {
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 0.5rem 0;
+        border-left: 4px solid;
+    }
+    
+    .status-success {
+        background-color: #d4edda;
+        border-color: #28a745;
+        color: #155724;
+    }
+    
+    .status-error {
+        background-color: #f8d7da;
+        border-color: #dc3545;
+        color: #721c24;
+    }
+    
+    .status-warning {
+        background-color: #fff3cd;
+        border-color: #ffc107;
+        color: #856404;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# CONFIGURACIÓN INICIAL FORZADA
+def reset_app_state():
+    """Resetear completamente el estado de la aplicación"""
+    keys_to_reset = [
+        'view_mode', 'selected_book_id', 'search_results', 
+        'current_page', 'search_query', 'search_active'
+    ]
+    for key in keys_to_reset:
+        if key in st.session_state:
+            del st.session_state[key]
+    
+    # Establecer valores por defecto
+    st.session_state.view_mode = "catalog"
+    st.session_state.selected_book_id = None
+    st.session_state.app_initialized = True
+
+# Verificar si necesitamos resetear
+if 'app_initialized' not in st.session_state:
+    reset_app_state()
+
+# DIAGNÓSTICO INICIAL
+st.title("🔍 Diagnóstico del Sistema")
+
+# Verificar imports
+import_status = {}
+try:
+    import pandas as pd
+    import_status['pandas'] = True
+    st.markdown('<div class="status-box status-success">✅ Pandas importado correctamente</div>', unsafe_allow_html=True)
+except ImportError as e:
+    import_status['pandas'] = False
+    st.markdown(f'<div class="status-box status-error">❌ Error importando pandas: {e}</div>', unsafe_allow_html=True)
+
+try:
+    from functions import execute_query
+    import_status['execute_query'] = True
+    st.markdown('<div class="status-box status-success">✅ Función execute_query importada correctamente</div>', unsafe_allow_html=True)
+except ImportError as e:
+    import_status['execute_query'] = False
+    st.markdown(f'<div class="status-box status-error">❌ Error importando execute_query: {e}</div>', unsafe_allow_html=True)
+    st.stop()
+
+# Estado de la aplicación
+st.subheader("📊 Estado de la Aplicación")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.write("**Variables de Session State:**")
+    user_type = st.session_state.get("user_type", "No definido")
+    nombre = st.session_state.get("nombre", "Usuario")
+    view_mode = st.session_state.get("view_mode", "No definido")
+    selected_book = st.session_state.get("selected_book_id", "Ninguno")
+    
+    st.write(f"- Usuario: {nombre}")
+    st.write(f"- Tipo de usuario: {user_type}")
+    st.write(f"- Vista actual: {view_mode}")
+    st.write(f"- Libro seleccionado: {selected_book}")
+
+with col2:
+    st.write("**Controles de Estado:**")
+    if st.button("🔄 Resetear Aplicación Completa"):
+        reset_app_state()
+        st.success("Estado reseteado correctamente")
+        st.rerun()
+    
+    if st.button("🏠 Forzar Vista Catálogo"):
+        st.session_state.view_mode = "catalog"
+        st.session_state.selected_book_id = None
+        st.success("Vista cambiada a catálogo")
+        st.rerun()
+
+# FUNCIONES PRINCIPALES
+@st.cache_data(ttl=300)  # Cache por 5 minutos
+def get_books_cached():
+    """Función para obtener libros con cache"""
+    try:
+        query = "SELECT * FROM libros ORDER BY titulo"
+        result = execute_query(query, params=None, is_select=True)
+        return result
+    except Exception as e:
+        st.error(f"Error en get_books_cached(): {str(e)}")
+        return pd.DataFrame()
+
+def test_database_connection():
+    """Probar conexión a la base de datos de forma segura"""
+    try:
+        st.write("🔍 Probando conexión a la base de datos...")
+        
+        # Test 1: Verificar tabla existe
+        query = "SELECT COUNT(*) as total FROM libros"
+        result = execute_query(query, params=None, is_select=True)
+        
+        if result is not None and not result.empty:
+            total_books = result.iloc[0]['total']
+            st.success(f"✅ Conexión exitosa. Total de libros: {total_books}")
+            
+            if total_books > 0:
+                # Test 2: Obtener muestra de datos
+                query = "SELECT numero_de_id, titulo, autor FROM libros LIMIT 3"
+                sample = execute_query(query, params=None, is_select=True)
+                st.write("**Muestra de datos:**")
+                st.dataframe(sample, use_container_width=True)
+                return True
+            else:
+                st.warning("⚠️ La tabla libros está vacía")
+                return False
+        else:
+            st.error("❌ No se pudo obtener información de la tabla")
+            return False
+            
+    except Exception as e:
+        st.error(f"❌ Error de conexión: {str(e)}")
+        return False
+
+def show_catalog():
+    """Mostrar catálogo de libros"""
+    st.header("📚 Catálogo de Libros")
+    
+    # Botón de actualizar
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        if st.button("🔄 Actualizar"):
+            st.cache_data.clear()
+            st.rerun()
+    
+    # Obtener libros
+    with st.spinner("Cargando libros..."):
+        df = get_books_cached()
+    
+    if df is None or df.empty:
+        st.warning("⚠️ No hay libros disponibles")
+        if st.button("🔍 Probar Conexión"):
+            test_database_connection()
+        return
+    
+    st.success(f"✅ {len(df)} libros encontrados")
+    
+    # Mostrar libros
+    for index, row in df.iterrows():
+        with st.container():
+            col1, col2, col3 = st.columns([1, 3, 1])
+            
+            with col1:
+                if 'portada_url' in row and pd.notna(row['portada_url']):
+                    try:
+                        st.image(row['portada_url'], width=80)
+                    except:
+                        st.write("🖼️")
+                else:
+                    st.write("📖")
+            
+            with col2:
+                st.write(f"**{row['titulo']}**")
+                st.write(f"*{row['autor']}*")
+                if 'disponibilidad' in row:
+                    status = "✅ Disponible" if row['disponibilidad'] else "❌ No disponible"
+                    st.write(status)
+            
+            with col3:
+                if st.button("Ver", key=f"view_{row['numero_de_id']}"):
+                    st.session_state.selected_book_id = row['numero_de_id']
+                    st.session_state.view_mode = "details"
+                    st.rerun()
+            
+            st.divider()
+
+def show_book_details():
+    """Mostrar detalles del libro"""
+    st.header("📖 Detalles del Libro")
+    
+    if st.button("⬅️ Volver al Catálogo"):
+        st.session_state.view_mode = "catalog"
+        st.session_state.selected_book_id = None
+        st.rerun()
+    
+    book_id = st.session_state.selected_book_id
+    if book_id is None:
+        st.error("❌ No se ha seleccionado ningún libro")
+        return
+    
+    try:
+        query = "SELECT * FROM libros WHERE numero_de_id = %s"
+        result = execute_query(query, params=(book_id,), is_select=True)
+        
+        if result.empty:
+            st.error("❌ Libro no encontrado")
+            return
+        
+        book = result.iloc[0]
+        
+        # Mostrar información del libro
+        col1, col2 = st.columns([1, 2])
+        
+        with col1:
+            if 'portada_url' in book and pd.notna(book['portada_url']):
+                try:
+                    st.image(book['portada_url'], width=200)
+                except:
+                    st.write("🖼️ [Imagen no disponible]")
+        
+        with col2:
+            st.subheader(book['titulo'])
+            st.write(f"**Autor:** {book['autor']}")
+            st.write(f"**ID:** {book['numero_de_id']}")
+            
+            # Información adicional disponible
+            extra_fields = ['genero', 'anio_publicacion', 'editorial', 'isbn']
+            for field in extra_fields:
+                if field in book and pd.notna(book[field]):
+                    st.write(f"**{field.replace('_', ' ').title()}:** {book[field]}")
+            
+            if 'disponibilidad' in book:
+                if book['disponibilidad']:
+                    st.success("✅ Disponible")
+                else:
+                    st.error("❌ No disponible")
+    
+    except Exception as e:
+        st.error(f"Error obteniendo detalles: {e}")
+
+# APLICACIÓN PRINCIPAL
+st.markdown("---")
+st.header("🚀 Aplicación Principal")
+
+# Prueba de conexión rápida
+with st.expander("🔧 Herramientas de Diagnóstico"):
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔍 Probar Conexión DB"):
+            test_database_connection()
+    with col2:
+        if st.button("🧹 Limpiar Cache"):
+            st.cache_data.clear()
+            st.success("Cache limpiado")
+
+# Mostrar la vista correspondiente
+current_view = st.session_state.get("view_mode", "catalog")
+
+if current_view == "catalog":
+    show_catalog()
+elif current_view == "details":
+    show_book_details()
+else:
+    st.error(f"Vista no reconocida: {current_view}")
+    st.session_state.view_mode = "catalog"
+    st.rerun()
+
+# Debug footer
+with st.expander("🐛 Información de Debug"):
+    st.write("**Session State completo:**")
+    st.json(dict(st.session_state))

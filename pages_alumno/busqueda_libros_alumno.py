@@ -1,8 +1,9 @@
 import streamlit as st
 from functions import execute_query
+from functions import solicitar_prestamo_libro
 
 def busqueda_libros_alumno():
-# --- CSS Styling ---
+    # --- CSS Styling ---
     st.markdown("""
         <style>
         /* Importar Libre Baskerville */
@@ -164,18 +165,23 @@ def busqueda_libros_alumno():
         </style>
     """, unsafe_allow_html=True)
 
-    st.title("Mi titulo nuevo")
     user_type = st.session_state.get("user_type", "")
     nombre = st.session_state.get("nombre", "Usuario")
-
+    email = st.session_state.get("email", "")
+    user_dni = st.session_state.get("dni", "")
 
     import pandas as pd
 
+    # Barra de búsqueda
+    search_query = st.text_input("🔎 Buscar por título, autor o editorial", "")
     st.title("Catálogo de Libros")
+    
 
     # Inicializar session state
     if "selected_book" not in st.session_state:
         st.session_state.selected_book = None
+    if "show_details" not in st.session_state:
+        st.session_state.show_details = False
 
     # Obtener todos los libros (con cache para evitar recargas)
     @st.cache_data
@@ -185,80 +191,76 @@ def busqueda_libros_alumno():
 
     df = get_books()
 
+    # Filtrar según búsqueda
+    if search_query:
+        df = df[
+            df['titulo'].str.contains(search_query, case=False, na=False) |
+            df['autor'].str.contains(search_query, case=False, na=False) |
+            df['editoria_edicion'].str.contains(search_query, case=False, na=False)
+        ]
+
     if not df.empty:
         st.write(f"*{len(df)} libros disponibles*")
         st.markdown("---")
         
-        # Crear columnas para el layout de tarjetas
-        cols = st.columns(3)  # 3 libros por fila
-        
-        for index, row in df.iterrows():
-            col = cols[index % 3]  # Alternar entre las 3 columnas
-            
-            with col:
-                # Crear una tarjeta para cada libro
-                with st.container():
-                    # Imagen de portada (placeholder por ahora)
-                    st.image("https://via.placeholder.com/150x200/cccccc/666666?text=Sin+Portada", 
-                            width=150)
-                    
-                    # Título del libro
-                    st.markdown(f"*{row['titulo']}*")
-                    
-                    # Autor
-                    st.markdown(f"por {row['autor']}")
-                    
-                    # Estado de disponibilidad
-                    if row['disponibilidad']:
+        libros = df.to_dict("records")
+        n = 3  # libros por fila
+
+        for i in range(0, len(libros), n):
+            fila = libros[i:i+n]
+            cols = st.columns(n)
+            for j, libro in enumerate(fila):
+                with cols[j]:
+                    #st.image("https://via.placeholder.com/150x200/cccccc/666666?text=Sin+Portada", width=150)
+                    st.markdown(f"*{libro['titulo']}*")
+                    st.markdown(f"por {libro['autor']}")
+                    if libro['disponibilidad']:
                         st.success("✅ Disponible")
                     else:
                         st.error("❌ No disponible")
-                    
-                    # Botón para ver detalles
-                    if st.button(f"Ver detalles", key=f"btn_{row['numero_de_id']}"):
-                        st.session_state.selected_book = row['numero_de_id']
+                    if st.button(f"Ver detalles", key=f"btn_{libro['id_libro']}"):
+                        st.session_state.selected_book = libro['id_libro']
+                        st.session_state.show_details = True
                         st.rerun()
-                    
-                    st.markdown("---")
-        
-        # Mostrar detalles del libro seleccionado
-        if st.session_state.selected_book is not None:
-            book_id = st.session_state.selected_book
-            
-            # Buscar el libro seleccionado
-            selected_book = df[df['numero_de_id'] == book_id].iloc[0]
-            
-            st.markdown("## 📖 Detalles del Libro")
-            
-            col1, col2 = st.columns([1, 2])
-            
-            with col1:
-                # Portada más grande
-                st.image("https://via.placeholder.com/200x300/cccccc/666666?text=Sin+Portada", 
-                        width=200)
-            
-            with col2:
-                st.markdown(f"### {selected_book['titulo']}")
-                st.markdown(f"*Autor:* {selected_book['autor']}")
-                st.markdown(f"*Editorial/Edición:* {selected_book['editoria_edicion']}")
-                st.markdown(f"*Biblioteca:* {selected_book['biblioteca']}")
-                st.markdown(f"*Ubicación:* {selected_book['ubicacion']}")
-                st.markdown(f"*ID:* {selected_book['numero_de_id']}")
-                
-                # Estado
-                if selected_book['disponibilidad']:
-                    st.success("✅ Libro disponible para préstamo")
-                    if st.button("📚 Solicitar préstamo"):
-                        st.info("Funcionalidad de préstamo en desarrollo")
-                else:
-                    st.error("❌ Libro no disponible")
-                    if st.button("⏰ Agregar a lista de espera"):
-                        st.info("Funcionalidad de lista de espera en desarrollo")
-            
-            # Botón para volver
-            if st.button("⬅️ Volver al catálogo"):
-                st.session_state.selected_book = None
-                st.rerun()
-
+            # Mostrar detalles de punta a punta si el libro seleccionado está en esta fila
+            if (
+                st.session_state.get("show_details", False)
+                and any(libro['id_libro'] == st.session_state.get("selected_book") for libro in fila)
+            ):
+                libro_detalle = next(libro for libro in fila if libro['id_libro'] == st.session_state.get("selected_book"))
+                st.markdown("---")
+                with st.container():
+                    col1, col2 = st.columns([1, 2])
+                    with col1:
+                        st.image("https://via.placeholder.com/200x300/cccccc/666666?text=Sin+Portada", width=200)
+                    with col2:
+                        st.markdown(f"### {libro_detalle['titulo']}")
+                        st.markdown(f"*Autor:* {libro_detalle['autor']}")
+                        st.markdown(f"*Editorial/Edición:* {libro_detalle['editoria_edicion']}")
+                        st.markdown(f"*Biblioteca:* {libro_detalle['biblioteca']}")
+                        st.markdown(f"*Ubicación:* {libro_detalle['ubicacion']}")
+                        st.markdown(f"*ID:* {libro_detalle['id_libro']}")
+                        if libro_detalle['disponibilidad']:
+                            st.success("✅ Libro disponible para préstamo")
+                            # Campo para ingresar la clave
+                            clave = st.text_input("Ingrese su DNI para solicitar el préstamo", key=f"clave_{libro_detalle['id_libro']}")
+                            if st.button("📚 Solicitar préstamo", key=f"solicitar_{libro_detalle['id_libro']}"):
+                                if clave:
+                                    resultado = solicitar_prestamo_libro(libro_detalle['id_libro'], clave)
+                                    if resultado:
+                                        st.success("¡Préstamo solicitado con éxito!")
+                                    else:
+                                        st.error("No se pudo registrar el préstamo.")
+                                else:
+                                    st.error("Debe ingresar su DNI para solicitar el préstamo.")
+                        else:
+                            st.error("❌ Libro no disponible")
+                            if st.button("⏰ Agregar a lista de espera", key=f"espera_{libro_detalle['id_libro']}"):
+                                st.info("Funcionalidad de lista de espera en desarrollo")
+                    if st.button("⬅️ Volver al catálogo", key=f"volver_{libro_detalle['id_libro']}"):
+                        st.session_state.selected_book = None
+                        st.session_state.show_details = False
+                        st.rerun()
+                st.markdown("---")
     else:
-        st.warning("No hay libros en la base de datos")
+            st.warning("No se ha encontrado ningún libro con esa búsqueda.")

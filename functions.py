@@ -154,3 +154,29 @@ def update_user_academic_info(facultad, carrera, email):
     params = (facultad, carrera, email)
     return execute_query(query, params, is_select=False)
 
+def solicitar_prestamo_libro(id_libro, dni, dias_prestamo=7):
+    """
+    Registra un nuevo préstamo de libro para un usuario por DNI.
+    """
+    fecha_prestamo = datetime.now().date()
+    fecha_devolucion = fecha_prestamo + timedelta(days=dias_prestamo)
+    query = """
+        INSERT INTO prestamo (id_libro, dni, fecha_prestamo, fecha_devolucion, estado)
+        VALUES (%s, %s, %s, %s, 'activo')
+    """
+    params = (id_libro, dni, fecha_prestamo, fecha_devolucion)
+    return execute_query(query, params, is_select=False)
+
+def get_user_loans(dni):
+    """
+    Obtiene todos los préstamos activos de un usuario.
+    """
+    query = """
+        SELECT p.id_prestamo, l.titulo, p.fecha_prestamo, p.fecha_devolucion, p.estado
+        FROM prestamo p
+        JOIN libro l ON p.id_libro = l.id_libro
+        WHERE p.dni = %s AND p.estado = 'activo'
+        ORDER BY p.fecha_prestamo DESC
+    """
+    params = (dni,)
+    return execute_query(query, params, is_select=True)

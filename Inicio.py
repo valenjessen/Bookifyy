@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # IMPORTANTE: Limpiar completamente la sesión si hay inconsistencias
-if st.button("🔄 Reiniciar Aplicación", key="reset_app"):
+if st.button("🔄 Reiniciar Página", key="reset_app"):
     st.session_state.clear()
     st.rerun()
 
@@ -202,7 +202,7 @@ if not st.session_state.logged_in:
     # Header
     st.markdown("""
         <div class="header-container">
-            <h1 class="logo-title">bookify</h1>
+            <h1 class="logo-title"> bookify</h1>
             <p class="logo-subtitle">Sistema de gestión bibliotecaria</p>
             <p style="margin-top: 1rem; font-size: 1rem; text-align: center;">Universidad Austral</p>
         </div>
