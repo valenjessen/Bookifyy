@@ -1,5 +1,4 @@
-#FUNCIONA EN EL TEST, ACA NO, ARREGLAR (asumo que no esta bien definido para ingresar la info, porque devuelve vacio, osea no entiende)
-#CHEQUEAR EL CAMBIADO DE CONTRASENA
+#no cambia la contrasena en la base de datos
 
 import streamlit as st
 from functions import get_user_complete_info, update_user_password, update_user_academic_info
@@ -67,10 +66,8 @@ def user_alumno():
         st.markdown("---")
 
         # Información académica
-        
         facultad_actual = user_info['facultad'] if 'facultad' in user_info else ""
         carrera_actual = user_info['carrera'] if 'carrera' in user_info else ""
-
 
         if facultad_actual and carrera_actual:
             col1, col2 = st.columns(2)
@@ -114,7 +111,6 @@ def user_alumno():
                 submitted_academic = st.form_submit_button("Guardar información académica")
 
                 if submitted_academic:
-                    
                     if facultad_input and carrera_input:
                         try:
                             success = update_user_academic_info(facultad_input, carrera_input, mail_usuario)
@@ -168,7 +164,8 @@ def user_alumno():
                             st.error("❌ La nueva contraseña debe tener al menos 4 caracteres")
                         else:
                             try:
-                                success = update_user_password(mail_usuario, new_password)
+                                # CORRECCIÓN: el orden de los argumentos es (new_password, email)
+                                success = update_user_password(new_password, mail_usuario)
                                 if success:
                                     st.success("✅ Contraseña cambiada correctamente")
                                     st.session_state.show_password_form = False

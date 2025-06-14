@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Importar solo las funciones necesarias inicialmente
-from functions import add_person, verify_credentials, get_user_info
+from functions import add_person, verify_credentials, get_user_info, verify_credentials_with_type
 
 # NO importar las páginas aquí - las importaremos dinámicamente cuando sea necesario
 
@@ -278,7 +278,7 @@ if not st.session_state.logged_in:
             if login_submitted:
                 if login_mail and login_password:
                     try:
-                        if verify_credentials(login_mail, login_password):
+                        if verify_credentials_with_type(login_mail, login_password, user_classification):
                             user_info = get_user_info(login_mail)
                             
                             # Configurar sesión EXPLÍCITAMENTE
@@ -406,7 +406,7 @@ else:
                 from pages_biblio.prestamos_biblio import prestamos_biblio
                 prestamos_biblio()
             else:
-                st.markdown("Mis préstamos")
+                
                 # Importar y ejecutar la vista de préstamos (alumno)
                 from pages_alumno.mis_prestamos_alumno import mis_prestamos_alumno
                 mis_prestamos_alumno()

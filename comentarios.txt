@@ -1,10 +1,8 @@
 cosas nuevas: la primer cosa a saber
 
 --Falta:
--prestamos
--agregar form de busqueda por titulo en busqueda_libros
--arreglar cambio de contrasena de user
--todo biblio (casi igual q alumno, mucho copy paste)
+-que funcione bien la actualizacion de estado de biblio
+-que en alumno al hacer el prestamo nuevo que cambie el num de copias disponible y en base a eso sea el disponibilidad TRUE y FALSE 
 
 --Cosas a saber:
 -LAS VISTAS TIENEN TODAS QUE ARRANCAR CON def nombre_del_archivo():, y que TODO lo de esa pagina este dentro de esto, salvo el pass

@@ -1,39 +1,43 @@
 import sys
 import os
 import streamlit as st
-from functions import get_user_loans
+from datetime import datetime
+from functions import get_user_loans, get_user_requested_loans_with_order, get_user_complete_info, execute_query
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 def mis_prestamos_alumno():
     """Página para mostrar los préstamos del alumno"""
 
-    # Solo pide el DNI si no está en session_state
-    if 'dni' not in st.session_state or not st.session_state['dni']:
-        dni_input = st.text_input("Ingrese su DNI para ver sus préstamos")
-        if dni_input:
-            st.session_state['dni'] = dni_input
-            st.rerun()
-        else:
-            st.stop()
+    # Usar la clave correcta para el email
+    email_usuario = st.session_state.get('mail_institucional', None)
+    if not email_usuario:
+        st.error("No se encontró el email del usuario en la sesión. Por favor, vuelve a iniciar sesión.")
+        st.stop()
 
-    dni_usuario = st.session_state['dni']
-    nombre_usuario = st.session_state.get('nombre', 'Usuario')
+    # Obtener el dni a partir del email usando la función de functions.py
+    user_info = get_user_complete_info(email_usuario)
+    if user_info is not None and not user_info.empty:
+        dni_usuario = user_info.iloc[0]['dni']
+        nombre_usuario = user_info.iloc[0].get('nombre', 'Usuario')
+    else:
+        st.error("No se pudo obtener la información del usuario.")
+        st.stop()
 
-    # Contenedor de bienvenida
-    st.markdown("""
-        <div class="welcome-container">
-            <div class="welcome-message">Tus Préstamos Actuales</div>
-            <div class="welcome-subtitle">Aquí puedes ver y gestionar tus préstamos.</div>
-        </div>
-    """, unsafe_allow_html=True)
+    # --- NUEVO: Actualizar préstamos vencidos antes de mostrar ---
+    from functions import marcar_prestamos_vencidos  # Asegúrate de tener esta función en functions.py
+    marcar_prestamos_vencidos(dni_usuario)
+    # --- FIN NUEVO ---
 
-    # Botón de usuario en la esquina superior derecha
-    st.markdown("""
-        <div class="user-button-container">
-            <button class="user-button">👤</button>
-        </div>
-    """, unsafe_allow_html=True)
+    # Mensajes informativos más chicos y con menos espacio
+    st.markdown(
+        "<div style='font-size:1.1rem; margin-bottom:0.1em; font-weight:600;'>Tus Préstamos Actuales</div>",
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        "<div style='font-size:0.95rem; margin-bottom:0.5em; margin-top:0em;'>Aquí puedes ver y gestionar tus préstamos.</div>",
+        unsafe_allow_html=True
+    )
 
     # Mostrar los préstamos del usuario en columnas por estado
     loans = get_user_loans(dni_usuario)
@@ -52,20 +56,34 @@ def mis_prestamos_alumno():
                     st.error(f"### {titulos[idx]}")
                 else:
                     st.markdown(f"### {titulos[idx]}")
-                prestamos_estado = loans[loans['estado'].str.lower() == estado]
-                if not prestamos_estado.empty:
-                    for i, row in prestamos_estado.iterrows():
-                        with st.container():
-                            st.markdown(f"**Título:** {row['titulo']}")
-                            if 'autor' in row:
-                                st.markdown(f"**Autor:** {row['autor']}")
-                            # Solo mostrar fechas si NO es solicitado
-                            if estado in ["activo", "vencido"]:
-                                st.markdown(f"**Fecha de préstamo:** {row['fecha_prestamo']}")
-                                st.markdown(f"**Fecha de devolución:** {row['fecha_devolucion']}")
-                            st.markdown("---")
+                if estado != "solicitado":
+                    prestamos_estado = loans[loans['estado'].str.lower() == estado]
+                    if not prestamos_estado.empty:
+                        for i, row in prestamos_estado.iterrows():
+                            with st.container():
+                                st.markdown(f"**Título:** {row['titulo']}")
+                                if 'autor' in row:
+                                    st.markdown(f"**Autor:** {row['autor']}")
+                                # Solo mostrar fechas si NO es solicitado
+                                if estado in ["activo", "vencido"]:
+                                    st.markdown(f"**Fecha de préstamo:** {row['fecha_prestamo']}")
+                                    st.markdown(f"**Fecha de devolución:** {row['fecha_devolucion']}")
+                                st.markdown("---")
+                    else:
+                        st.info(f"No tienes préstamos {titulos[idx].lower()}.")
                 else:
-                    st.info(f"No tienes préstamos {titulos[idx].lower()}.")
+                    # Mostrar solicitados con orden_de_llegada
+                    solicitados = get_user_requested_loans_with_order(dni_usuario)
+                    if solicitados is not None and not solicitados.empty:
+                        for i, row in solicitados.iterrows():
+                            with st.container():
+                                st.markdown(f"**Título:** {row['titulo']}")
+                                if 'autor' in row:
+                                    st.markdown(f"**Autor:** {row['autor']}")
+                                st.markdown(f"**Orden en lista de espera:** {row['orden_de_llegada']}")
+                                st.markdown("---")
+                    else:
+                        st.info("No tienes préstamos solicitados.")
     else:
         st.info("No tienes préstamos registrados.")
 

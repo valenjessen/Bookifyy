@@ -116,6 +116,15 @@ def verify_credentials(email, password):
     else:
         return False
 
+def verify_credentials_with_type(email, password, user_type):
+    query = """
+        SELECT 1 FROM persona 
+        WHERE mail_institucional = %s AND contrasena = %s AND clasificacion = %s
+    """
+    params = (email, password, user_type)
+    result = execute_query(query, params, is_select=True)
+    return result is not None and not result.empty
+
 def get_user_info(email):
     query = "SELECT nombre, sexo FROM persona WHERE mail_institucional = %s"
     params = (email,)
@@ -201,21 +210,30 @@ def marcar_libro_no_disponible(id_libro):
     return execute_query(query, params, is_select=False)
 
 def lista_de_espera_libro(dni, titulo):
-    # 1. Insertar en lista_de_espera
+    # 1. Buscar cuántas personas ya están en lista de espera para ese libro
+    query_count = "SELECT COUNT(*) AS cantidad FROM lista_de_espera WHERE titulo = %s"
+    params_count = (titulo,)
+    df_count = execute_query(query_count, params_count, is_select=True)
+    if df_count is not None and not df_count.empty:
+        orden_de_llegada = int(df_count.iloc[0]['cantidad']) + 1
+    else:
+        orden_de_llegada = 1
+
+    # 2. Insertar en lista_de_espera con el orden correcto
     query_espera = """
-        INSERT INTO lista_de_espera (dni, titulo)
-        VALUES (%s, %s)
+        INSERT INTO lista_de_espera (dni, titulo, orden_de_llegada)
+        VALUES (%s, %s, %s)
     """
-    params_espera = (dni, titulo)
+    params_espera = (dni, titulo, orden_de_llegada)
     result_espera = execute_query(query_espera, params_espera, is_select=False)
 
-    # 2. Buscar id_libro por título
+    # 3. Buscar id_libro por título
     query_id = "SELECT id_libro FROM libros WHERE titulo = %s"
     params_id = (titulo,)
     df_id = execute_query(query_id, params_id, is_select=True)
     if df_id is not None and not df_id.empty:
-        id_libro = int(df_id.iloc[0]['id_libro'])  # <-- Conversión aquí
-        # 3. Insertar en prestamo con estado 'solicitado'
+        id_libro = int(df_id.iloc[0]['id_libro'])
+        # 4. Insertar en prestamo con estado 'solicitado'
         query_prestamo = """
             INSERT INTO prestamo (dni, id_libro, estado)
             VALUES (%s, %s, 'solicitado')
@@ -226,3 +244,51 @@ def lista_de_espera_libro(dni, titulo):
         result_prestamo = False
 
     return result_espera and result_prestamo
+
+# Agrega esta función o modifica la existente para obtener el orden de llegada
+def get_user_requested_loans_with_order(dni):
+    query = """
+        SELECT l.titulo, l.autor, p.estado, le.orden_de_llegada
+        FROM prestamo p
+        JOIN libros l ON p.id_libro = l.id_libro
+        JOIN lista_de_espera le ON le.dni = p.dni AND le.titulo = l.titulo
+        WHERE p.dni = %s AND p.estado = 'solicitado'
+        ORDER BY le.orden_de_llegada
+    """
+    params = (dni,)
+    return execute_query(query, params, is_select=True)
+
+def marcar_prestamos_vencidos(dni):
+    """
+    Marca como 'vencido' todos los préstamos activos del usuario cuya fecha_devolucion ya pasó.
+    """
+    from datetime import datetime
+    hoy = datetime.now().date()
+    query = """
+        UPDATE prestamo
+        SET estado = 'vencido'
+        WHERE dni = %s AND estado = 'activo' AND fecha_devolucion < %s
+    """
+    params = (dni, hoy)
+    execute_query(query, params, is_select=False)
+
+def get_libro_by_id(id_libro):
+    query = "SELECT * FROM libros WHERE id_libro = %s"
+    params = (id_libro,)
+    return execute_query(query, params, is_select=True)
+
+def update_numero_copias_disponibles(id_libro, nuevo_valor):
+    # Obtener el valor anterior para saber si hay que cambiar disponibilidad
+    libro = get_libro_by_id(id_libro)
+    if libro is not None and not libro.empty:
+        anterior = int(libro.iloc[0]['numero_de_copias_disponibles'])
+        query = "UPDATE libros SET numero_de_copias_disponibles = %s WHERE id_libro = %s"
+        params = (nuevo_valor, id_libro)
+        execute_query(query, params, is_select=False)
+        # Cambiar disponibilidad si corresponde
+        if anterior == 0 and nuevo_valor == 1:
+            query_disp = "UPDATE libros SET disponibilidad = TRUE WHERE id_libro = %s"
+            execute_query(query_disp, (id_libro,), is_select=False)
+        elif anterior == 1 and nuevo_valor == 0:
+            query_disp = "UPDATE libros SET disponibilidad = FALSE WHERE id_libro = %s"
+            execute_query(query_disp, (id_libro,), is_select=False)
