@@ -1,6 +1,7 @@
 import streamlit as st
 from functions import execute_query
-from functions import solicitar_prestamo_libro, marcar_libro_no_disponible, lista_de_espera_libro
+from functions import solicitar_prestamo_libro, lista_de_espera_libro, procesar_prestamo_libro
+from functions import verificar_dni_usuario  # Agrega este import
 
 def busqueda_libros_alumno():
     # --- CSS Styling ---
@@ -209,7 +210,6 @@ def busqueda_libros_alumno():
             cols = st.columns(n)
             for j, libro in enumerate(fila):
                 with cols[j]:
-                    #st.image("https://via.placeholder.com/150x200/cccccc/666666?text=Sin+Portada", width=150)
                     st.markdown(f"*{libro['titulo']}*")
                     st.markdown(f"por {libro['autor']}")
                     if libro['disponibilidad']:
@@ -220,7 +220,7 @@ def busqueda_libros_alumno():
                         st.session_state.selected_book = libro['id_libro']
                         st.session_state.show_details = True
                         st.rerun()
-            # Mostrar detalles de punta a punta si el libro seleccionado está en esta fila
+            # Mostrar detalles si el libro seleccionado está en esta fila
             if (
                 st.session_state.get("show_details", False)
                 and any(libro['id_libro'] == st.session_state.get("selected_book") for libro in fila)
@@ -243,15 +243,20 @@ def busqueda_libros_alumno():
                             dni = st.text_input("Ingrese su DNI para solicitar el préstamo", key=f"dni_{libro_detalle['id_libro']}")
                             if st.button("📚 Solicitar préstamo", key=f"solicitar_{libro_detalle['id_libro']}"):
                                 if dni:
-                                    resultado = solicitar_prestamo_libro(libro_detalle['id_libro'], dni)
-                                    if resultado:
-                                        marcar_libro_no_disponible(libro_detalle['id_libro'])
-                                        st.session_state.prestamo_exitoso = True
-                                        st.session_state.prestamo_libro_id = libro_detalle['id_libro']
-                                        st.cache_data.clear()  # <-- Esto limpia el cache de libros
-                                        st.rerun()
+                                    # Verifica que el dni ingresado sea el del usuario logueado
+                                    email_usuario = st.session_state.get('mail_institucional', None)
+                                    if verificar_dni_usuario(email_usuario, dni):
+                                        resultado = solicitar_prestamo_libro(libro_detalle['id_libro'], dni)
+                                        if resultado:
+                                            procesar_prestamo_libro(libro_detalle['id_libro'])
+                                            st.session_state.prestamo_exitoso = True
+                                            st.session_state.prestamo_libro_id = libro_detalle['id_libro']
+                                            st.cache_data.clear()
+                                            st.rerun()
+                                        else:
+                                            st.error("No se pudo registrar el préstamo.")
                                     else:
-                                        st.error("No se pudo registrar el préstamo.")
+                                        st.error("Credenciales incorrectas.")
                                 else:
                                     st.error("Debe ingresar su DNI para solicitar el préstamo.")
                         else:
@@ -259,12 +264,16 @@ def busqueda_libros_alumno():
                             dni_espera = st.text_input("Ingrese su DNI para la lista de espera", key=f"dni_espera_{libro_detalle['id_libro']}")
                             if st.button("⏰ Agregar a lista de espera", key=f"espera_{libro_detalle['id_libro']}"):
                                 if dni_espera:
-                                    resultado_espera = lista_de_espera_libro(dni_espera, libro_detalle['titulo'])
-                                    if resultado_espera:
-                                        st.success("Te has agregado a la lista de espera para este libro.")
-                                        st.balloons()
+                                    email_usuario = st.session_state.get('mail_institucional', None)
+                                    if verificar_dni_usuario(email_usuario, dni_espera):
+                                        resultado_espera = lista_de_espera_libro(dni_espera, libro_detalle['titulo'])
+                                        if resultado_espera:
+                                            st.success("Te has agregado a la lista de espera para este libro.")
+                                            st.balloons()
+                                        else:
+                                            st.error("No se pudo agregar a la lista de espera.")
                                     else:
-                                        st.error("No se pudo agregar a la lista de espera.")
+                                        st.error("Credenciales incorrectas.")
                                 else:
                                     st.error("Debe ingresar su DNI para la lista de espera.")
                     if st.button("⬅️ Volver al catálogo", key=f"volver_{libro_detalle['id_libro']}"):
@@ -273,11 +282,14 @@ def busqueda_libros_alumno():
                         st.rerun()
                 st.markdown("---")
     else:
-            st.warning("No se ha encontrado ningún libro con esa búsqueda.")
-    
-    if st.session_state.get("prestamo_exitoso", False) and st.session_state.get("prestamo_libro_id") == libro_detalle['id_libro']:
+        st.warning("No se ha encontrado ningún libro con esa búsqueda.")
+
+    # Mensaje de éxito de préstamo
+    if (
+        st.session_state.get("prestamo_exitoso", False)
+        and st.session_state.get("prestamo_libro_id") == st.session_state.get("selected_book")
+    ):
         st.success("¡Préstamo solicitado con éxito!")
         st.balloons()
-        # Limpia el estado para que no se repita
         st.session_state.prestamo_exitoso = False
         st.session_state.prestamo_libro_id = None

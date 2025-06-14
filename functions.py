@@ -292,3 +292,31 @@ def update_numero_copias_disponibles(id_libro, nuevo_valor):
         elif anterior == 1 and nuevo_valor == 0:
             query_disp = "UPDATE libros SET disponibilidad = FALSE WHERE id_libro = %s"
             execute_query(query_disp, (id_libro,), is_select=False)
+
+def procesar_prestamo_libro(id_libro):
+    """
+    Resta 1 a numero_de_copias_disponibles del libro.
+    Si el resultado es 0, pone disponibilidad en FALSE.
+    Si el resultado es mayor a 0, mantiene disponibilidad en TRUE.
+    """
+    libro = get_libro_by_id(id_libro)
+    if libro is not None and not libro.empty:
+        copias_disp = int(libro.iloc[0]['numero_de_copias_disponibles'])
+        if copias_disp > 1:
+            nuevo_valor = copias_disp - 1
+            query = "UPDATE libros SET numero_de_copias_disponibles = %s, disponibilidad = TRUE WHERE id_libro = %s"
+            params = (nuevo_valor, id_libro)
+            execute_query(query, params, is_select=False)
+        elif copias_disp == 1:
+            query = "UPDATE libros SET numero_de_copias_disponibles = 0, disponibilidad = FALSE WHERE id_libro = %s"
+            params = (id_libro,)
+            execute_query(query, params, is_select=False)
+
+def verificar_dni_usuario(email, dni):
+    """
+    Verifica si el dni corresponde al usuario con ese email.
+    """
+    query = "SELECT 1 FROM persona WHERE mail_institucional = %s AND dni = %s"
+    params = (email, dni)
+    result = execute_query(query, params, is_select=True)
+    return result is not None and not result.empty
