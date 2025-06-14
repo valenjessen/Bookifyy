@@ -1,23 +1,24 @@
 import sys
 import os
 import streamlit as st
+from functions import get_user_loans
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-#from functions import get_user_loans
-#from functions import extend_loan
-
 def mis_prestamos_alumno():
     """Página para mostrar los préstamos del alumno"""
-    
-    # Verificar si el usuario está autenticado
-    if 'mail_institucional' not in st.session_state:
-        st.error("Por favor, inicia sesión para ver tus préstamos.")
-        return
-    
-    mail_usuario = st.session_state['mail_institucional']
+
+    # Solo pide el DNI si no está en session_state
+    if 'dni' not in st.session_state or not st.session_state['dni']:
+        dni_input = st.text_input("Ingrese su DNI para ver sus préstamos")
+        if dni_input:
+            st.session_state['dni'] = dni_input
+            st.experimental_rerun()
+        else:
+            st.stop()
+
+    dni_usuario = st.session_state['dni']
     nombre_usuario = st.session_state.get('nombre', 'Usuario')
-    
 
     # Contenedor de bienvenida
     st.markdown("""
@@ -26,16 +27,47 @@ def mis_prestamos_alumno():
             <div class="welcome-subtitle">Aquí puedes ver y gestionar tus préstamos.</div>
         </div>
     """, unsafe_allow_html=True)
-    
+
     # Botón de usuario en la esquina superior derecha
     st.markdown("""
         <div class="user-button-container">
             <button class="user-button">👤</button>
         </div>
     """, unsafe_allow_html=True)
-    
-    # Mostrar los préstamos del usuario
-    display_user_loans(mail_usuario)
+
+    # Mostrar los préstamos del usuario en columnas por estado
+    loans = get_user_loans(dni_usuario)
+    if loans is not None and not loans.empty:
+        estados = ["activo", "vencido", "solicitado"]
+        titulos = ["Activos", "Vencidos", "Solicitados"]
+        col1, col2, col3 = st.columns(3)
+        columnas = [col1, col2, col3]
+
+        for idx, estado in enumerate(estados):
+            with columnas[idx]:
+                # Título de columna con color según estado
+                if estado == "activo":
+                    st.success(f"### {titulos[idx]}")
+                elif estado == "vencido":
+                    st.error(f"### {titulos[idx]}")
+                else:
+                    st.markdown(f"### {titulos[idx]}")
+                prestamos_estado = loans[loans['estado'].str.lower() == estado]
+                if not prestamos_estado.empty:
+                    for i, row in prestamos_estado.iterrows():
+                        with st.container():
+                            st.markdown(f"**Título:** {row['titulo']}")
+                            if 'autor' in row:
+                                st.markdown(f"**Autor:** {row['autor']}")
+                            st.markdown(f"**Fecha de préstamo:** {row['fecha_prestamo']}")
+                            st.markdown(f"**Fecha de devolución:** {row['fecha_devolucion']}")
+                            if st.button("Ver detalles", key=f"detalle_{estado}_{i}"):
+                                st.info(f"Detalles del préstamo:\n\nTítulo: {row['titulo']}\nFecha de préstamo: {row['fecha_prestamo']}\nFecha de devolución: {row['fecha_devolucion']}")
+                            st.markdown("---")
+                else:
+                    st.info(f"No tienes préstamos {titulos[idx].lower()}.")
+    else:
+        st.info("No tienes préstamos registrados.")
 
     # --- CSS Styling ---
     st.markdown("""
@@ -83,14 +115,14 @@ def mis_prestamos_alumno():
         .welcome-message {
             font-size: 2.5rem;
             font-weight: 700;
-            color: white;
+            color: var(--color-primary);
             margin-bottom: 1rem;
         }
     
         .welcome-subtitle {
             font-size: 1.2rem;
             opacity: 0.8;
-            color: white;
+            color: var(--color-primary);
         }
     
     
@@ -176,18 +208,3 @@ def mis_prestamos_alumno():
         }
         </style>
     """, unsafe_allow_html=True)
-
-    def display_user_loans(dni):
-        """
-        Display all loans for the current user.
-        """
-        loans = get_user_loans(dni)
-    # Format and display loans
-    # Group by status (overdue, active, requested)
-    
-    def request_extension(dni, numero_de_id):
-        """
-        Request an extension for a loan.
-        """
-        success, message = extend_loan(dni, numero_de_id)
-    # Display success or error message

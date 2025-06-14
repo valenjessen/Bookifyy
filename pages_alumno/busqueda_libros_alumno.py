@@ -1,6 +1,6 @@
 import streamlit as st
 from functions import execute_query
-from functions import solicitar_prestamo_libro
+from functions import solicitar_prestamo_libro, marcar_libro_no_disponible
 
 def busqueda_libros_alumno():
     # --- CSS Styling ---
@@ -21,17 +21,15 @@ def busqueda_libros_alumno():
         .stApp {
             background-color: var(--color-lightest);
             color: var(--color-primary);
-            font-family: 'Libre Baskerville', serif;
         }
         
         .logo-title {
             font-size: 3rem;
             font-weight: 700;
             margin: 0;
-            font-family: 'Libre Baskerville', serif;
             text-align: center;
         }
-        
+
         .logo-subtitle {
             font-size: 1.2rem;
             margin: 0.5rem 0 0 0;
@@ -242,13 +240,16 @@ def busqueda_libros_alumno():
                         st.markdown(f"*ID:* {libro_detalle['id_libro']}")
                         if libro_detalle['disponibilidad']:
                             st.success("✅ Libro disponible para préstamo")
-                            # Campo para ingresar la clave
-                            clave = st.text_input("Ingrese su DNI para solicitar el préstamo", key=f"clave_{libro_detalle['id_libro']}")
+                            dni = st.text_input("Ingrese su DNI para solicitar el préstamo", key=f"dni_{libro_detalle['id_libro']}")
                             if st.button("📚 Solicitar préstamo", key=f"solicitar_{libro_detalle['id_libro']}"):
-                                if clave:
-                                    resultado = solicitar_prestamo_libro(libro_detalle['id_libro'], clave)
+                                if dni:
+                                    resultado = solicitar_prestamo_libro(libro_detalle['id_libro'], dni)
                                     if resultado:
-                                        st.success("¡Préstamo solicitado con éxito!")
+                                        marcar_libro_no_disponible(libro_detalle['id_libro'])
+                                        st.session_state.prestamo_exitoso = True
+                                        st.session_state.prestamo_libro_id = libro_detalle['id_libro']
+                                        st.cache_data.clear()  # <-- Esto limpia el cache de libros
+                                        st.rerun()
                                     else:
                                         st.error("No se pudo registrar el préstamo.")
                                 else:
@@ -264,3 +265,10 @@ def busqueda_libros_alumno():
                 st.markdown("---")
     else:
             st.warning("No se ha encontrado ningún libro con esa búsqueda.")
+    
+    if st.session_state.get("prestamo_exitoso", False) and st.session_state.get("prestamo_libro_id") == libro_detalle['id_libro']:
+        st.success("¡Préstamo solicitado con éxito!")
+        st.balloons()
+        # Limpia el estado para que no se repita
+        st.session_state.prestamo_exitoso = False
+        st.session_state.prestamo_libro_id = None

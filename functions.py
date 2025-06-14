@@ -167,16 +167,39 @@ def solicitar_prestamo_libro(id_libro, dni, dias_prestamo=7):
     params = (id_libro, dni, fecha_prestamo, fecha_devolucion)
     return execute_query(query, params, is_select=False)
 
+
+
 def get_user_loans(dni):
     """
-    Obtiene todos los préstamos activos de un usuario.
+    Obtiene todos los préstamos activos de un usuario por DNI.
     """
     query = """
-        SELECT p.id_prestamo, l.titulo, p.fecha_prestamo, p.fecha_devolucion, p.estado
+        SELECT l.titulo, p.fecha_prestamo, p.fecha_devolucion, p.estado
         FROM prestamo p
-        JOIN libro l ON p.id_libro = l.id_libro
+        JOIN libros l ON p.id_libro = l.id_libro
+        JOIN persona pe ON p.dni = pe.dni
         WHERE p.dni = %s AND p.estado = 'activo'
         ORDER BY p.fecha_prestamo DESC
     """
     params = (dni,)
     return execute_query(query, params, is_select=True)
+
+def extend_loan(loan_id, additional_days=7):
+    """
+    Extiende la fecha de devolución de un préstamo activo.
+    """
+    query = """
+        UPDATE prestamo
+        SET fecha_devolucion = fecha_devolucion + INTERVAL '%s days'
+        WHERE id_prestamo = %s AND estado = 'activo'
+    """
+    params = (additional_days, loan_id)
+    return execute_query(query, params, is_select=False)
+
+def marcar_libro_no_disponible(id_libro):
+    """
+    Marca el libro como no disponible en la base de datos.
+    """
+    query = "UPDATE libros SET disponibilidad = FALSE WHERE id_libro = %s"
+    params = (id_libro,)
+    return execute_query(query, params, is_select=False)
