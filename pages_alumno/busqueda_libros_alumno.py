@@ -1,6 +1,6 @@
 import streamlit as st
 from functions import execute_query
-from functions import solicitar_prestamo_libro, marcar_libro_no_disponible
+from functions import solicitar_prestamo_libro, marcar_libro_no_disponible, lista_de_espera_libro
 
 def busqueda_libros_alumno():
     # --- CSS Styling ---
@@ -256,8 +256,17 @@ def busqueda_libros_alumno():
                                     st.error("Debe ingresar su DNI para solicitar el préstamo.")
                         else:
                             st.error("❌ Libro no disponible")
+                            dni_espera = st.text_input("Ingrese su DNI para la lista de espera", key=f"dni_espera_{libro_detalle['id_libro']}")
                             if st.button("⏰ Agregar a lista de espera", key=f"espera_{libro_detalle['id_libro']}"):
-                                st.info("Funcionalidad de lista de espera en desarrollo")
+                                if dni_espera:
+                                    resultado_espera = lista_de_espera_libro(dni_espera, libro_detalle['titulo'])
+                                    if resultado_espera:
+                                        st.success("Te has agregado a la lista de espera para este libro.")
+                                        st.balloons()
+                                    else:
+                                        st.error("No se pudo agregar a la lista de espera.")
+                                else:
+                                    st.error("Debe ingresar su DNI para la lista de espera.")
                     if st.button("⬅️ Volver al catálogo", key=f"volver_{libro_detalle['id_libro']}"):
                         st.session_state.selected_book = None
                         st.session_state.show_details = False

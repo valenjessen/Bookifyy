@@ -13,7 +13,7 @@ def mis_prestamos_alumno():
         dni_input = st.text_input("Ingrese su DNI para ver sus préstamos")
         if dni_input:
             st.session_state['dni'] = dni_input
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.stop()
 
@@ -59,10 +59,10 @@ def mis_prestamos_alumno():
                             st.markdown(f"**Título:** {row['titulo']}")
                             if 'autor' in row:
                                 st.markdown(f"**Autor:** {row['autor']}")
-                            st.markdown(f"**Fecha de préstamo:** {row['fecha_prestamo']}")
-                            st.markdown(f"**Fecha de devolución:** {row['fecha_devolucion']}")
-                            if st.button("Ver detalles", key=f"detalle_{estado}_{i}"):
-                                st.info(f"Detalles del préstamo:\n\nTítulo: {row['titulo']}\nFecha de préstamo: {row['fecha_prestamo']}\nFecha de devolución: {row['fecha_devolucion']}")
+                            # Solo mostrar fechas si NO es solicitado
+                            if estado in ["activo", "vencido"]:
+                                st.markdown(f"**Fecha de préstamo:** {row['fecha_prestamo']}")
+                                st.markdown(f"**Fecha de devolución:** {row['fecha_devolucion']}")
                             st.markdown("---")
                 else:
                     st.info(f"No tienes préstamos {titulos[idx].lower()}.")

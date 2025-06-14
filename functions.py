@@ -144,7 +144,6 @@ def update_user_password(new_password, email):
     params = (new_password, email)
     return execute_query(query, params, is_select=False)
 
-
 def update_user_academic_info(facultad, carrera, email):
     """
     Actualiza la información académica de la persona
@@ -167,18 +166,15 @@ def solicitar_prestamo_libro(id_libro, dni, dias_prestamo=7):
     params = (id_libro, dni, fecha_prestamo, fecha_devolucion)
     return execute_query(query, params, is_select=False)
 
-
-
 def get_user_loans(dni):
     """
-    Obtiene todos los préstamos activos de un usuario por DNI.
+    Obtiene todos los préstamos de un usuario por DNI (activos, vencidos y solicitados).
     """
     query = """
-        SELECT l.titulo, p.fecha_prestamo, p.fecha_devolucion, p.estado
+        SELECT l.titulo, l.autor, p.fecha_prestamo, p.fecha_devolucion, p.estado
         FROM prestamo p
         JOIN libros l ON p.id_libro = l.id_libro
-        JOIN persona pe ON p.dni = pe.dni
-        WHERE p.dni = %s AND p.estado = 'activo'
+        WHERE p.dni = %s
         ORDER BY p.fecha_prestamo DESC
     """
     params = (dni,)
@@ -203,3 +199,30 @@ def marcar_libro_no_disponible(id_libro):
     query = "UPDATE libros SET disponibilidad = FALSE WHERE id_libro = %s"
     params = (id_libro,)
     return execute_query(query, params, is_select=False)
+
+def lista_de_espera_libro(dni, titulo):
+    # 1. Insertar en lista_de_espera
+    query_espera = """
+        INSERT INTO lista_de_espera (dni, titulo)
+        VALUES (%s, %s)
+    """
+    params_espera = (dni, titulo)
+    result_espera = execute_query(query_espera, params_espera, is_select=False)
+
+    # 2. Buscar id_libro por título
+    query_id = "SELECT id_libro FROM libros WHERE titulo = %s"
+    params_id = (titulo,)
+    df_id = execute_query(query_id, params_id, is_select=True)
+    if df_id is not None and not df_id.empty:
+        id_libro = int(df_id.iloc[0]['id_libro'])  # <-- Conversión aquí
+        # 3. Insertar en prestamo con estado 'solicitado'
+        query_prestamo = """
+            INSERT INTO prestamo (dni, id_libro, estado)
+            VALUES (%s, %s, 'solicitado')
+        """
+        params_prestamo = (dni, id_libro)
+        result_prestamo = execute_query(query_prestamo, params_prestamo, is_select=False)
+    else:
+        result_prestamo = False
+
+    return result_espera and result_prestamo
