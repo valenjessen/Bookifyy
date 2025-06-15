@@ -180,7 +180,7 @@ def get_user_loans(dni):
     Obtiene todos los préstamos de un usuario por DNI (activos, vencidos y solicitados).
     """
     query = """
-        SELECT l.titulo, l.autor, p.fecha_prestamo, p.fecha_devolucion, p.estado
+        SELECT p.id_libro, l.titulo, l.autor, p.fecha_prestamo, p.fecha_devolucion, p.estado
         FROM prestamo p
         JOIN libros l ON p.id_libro = l.id_libro
         WHERE p.dni = %s
