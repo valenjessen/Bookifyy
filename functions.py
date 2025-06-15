@@ -189,17 +189,6 @@ def get_user_loans(dni):
     params = (dni,)
     return execute_query(query, params, is_select=True)
 
-def extend_loan(loan_id, additional_days=7):
-    """
-    Extiende la fecha de devolución de un préstamo activo.
-    """
-    query = """
-        UPDATE prestamo
-        SET fecha_devolucion = fecha_devolucion + INTERVAL '%s days'
-        WHERE id_prestamo = %s AND estado = 'activo'
-    """
-    params = (additional_days, loan_id)
-    return execute_query(query, params, is_select=False)
 
 def marcar_libro_no_disponible(id_libro):
     """
@@ -320,3 +309,118 @@ def verificar_dni_usuario(email, dni):
     params = (email, dni)
     result = execute_query(query, params, is_select=True)
     return result is not None and not result.empty
+
+def buscar_prestamos(filtros):
+    query = """
+        SELECT p.estado, p.fecha_prestamo, p.fecha_devolucion, p.dni, p.id_libro, l.titulo, per.nombre
+        FROM prestamos p
+        JOIN libro l ON p.id_libro = l.id_libro
+        JOIN persona per ON p.dni = per.dni
+        WHERE 1=1
+    """
+    params = []
+    if filtros.get("estado"):
+        query += " AND p.estado LIKE ?"
+        params.append(f"%{filtros['estado']}%")
+    if filtros.get("fecha_prestamo"):
+        query += " AND p.fecha_prestamo = ?"
+        params.append(filtros["fecha_prestamo"])
+    if filtros.get("fecha_devolucion"):
+        query += " AND p.fecha_devolucion = ?"
+        params.append(filtros["fecha_devolucion"])
+    if filtros.get("dni"):
+        query += " AND p.dni LIKE ?"
+        params.append(f"%{filtros['dni']}%")
+    if filtros.get("id_libro"):
+        query += " AND p.id_libro = ?"
+        params.append(filtros["id_libro"])
+    if filtros.get("titulo"):
+        query += " AND l.titulo LIKE ?"
+        params.append(f"%{filtros['titulo']}%")
+    return execute_query(query, params, is_select=True)
+
+def get_loans():
+    """
+    Obtiene todos los préstamos de la biblioteca (activos, vencidos y solicitados), incluyendo el nombre del usuario y el id del libro.
+    """
+    query = """
+        SELECT p.id_libro, l.titulo, l.autor, p.fecha_prestamo, p.fecha_devolucion, p.estado, p.dni, per.nombre
+        FROM prestamo p
+        JOIN libros l ON p.id_libro = l.id_libro
+        JOIN persona per ON p.dni = per.dni
+        ORDER BY p.fecha_prestamo DESC
+    """
+    params = ()
+    return execute_query(query, params, is_select=True)
+
+def get_requested_loans_with_order():
+    query = """
+        SELECT p.id_libro, l.titulo, l.autor, p.estado, le.orden_de_llegada, p.dni, per.nombre
+        FROM prestamo p
+        JOIN libros l ON p.id_libro = l.id_libro
+        LEFT JOIN lista_de_espera le ON le.dni = p.dni AND LOWER(le.titulo) = LOWER(l.titulo)
+        JOIN persona per ON p.dni = per.dni
+        WHERE LOWER(p.estado) = 'solicitado'
+        ORDER BY COALESCE(le.orden_de_llegada, 9999)
+    """
+    params = ()
+    return execute_query(query, params, is_select=True)
+
+def marcar_todos_prestamos_vencidos():
+    """
+    Marca como 'vencido' todos los préstamos activos del usuario cuya fecha_devolucion ya pasó.
+    """
+    from datetime import datetime
+    hoy = datetime.now().date()
+    query = """
+        UPDATE prestamo
+        SET estado = 'vencido'
+        WHERE estado = 'activo' AND fecha_devolucion < %s
+    """
+    params = ( hoy)
+    execute_query(query, params, is_select=False)
+
+def libro_devuelto_func(id_libro):
+    from datetime import datetime, timedelta
+    # 1. Sumar 1 a numero_de_copias_disponibles
+    libro = get_libro_by_id(id_libro)
+    if libro is not None and not libro.empty:
+        copias_disp = int(libro.iloc[0]['numero_de_copias_disponibles'])
+        nuevo_valor = copias_disp + 1
+        update_numero_copias_disponibles(id_libro, nuevo_valor)
+        # 2. Si disponibilidad era FALSE, poner TRUE si hay al menos 1 copia
+        if not libro.iloc[0]['disponibilidad'] and nuevo_valor > 0:
+            query = "UPDATE libros SET disponibilidad = TRUE WHERE id_libro = %s"
+            execute_query(query, (id_libro,), is_select=False)
+    # 3. Buscar si hay préstamo solicitado para este libro
+    query = "SELECT * FROM prestamo WHERE id_libro = %s AND LOWER(estado) = 'solicitado' ORDER BY fecha_prestamo ASC LIMIT 1"
+    df_solicitado = execute_query(query, (id_libro,), is_select=True)
+    # 4. Borrar el préstamo devuelto de la tabla prestamo (el que está activo o vencido)
+    query_del_prestamo = "DELETE FROM prestamo WHERE id_libro = %s AND (estado = 'activo' OR estado = 'vencido')"
+    execute_query(query_del_prestamo, (id_libro,), is_select=False)
+    if df_solicitado is not None and not df_solicitado.empty:
+        prestamo = df_solicitado.iloc[0]
+        dni = prestamo['dni']
+        titulo = libro.iloc[0]['titulo']
+        # 5. Buscar en lista_de_espera el de orden_de_llegada = 1 para este título
+        query_espera = "SELECT * FROM lista_de_espera WHERE titulo = %s AND orden_de_llegada = 1"
+        df_espera = execute_query(query_espera, (titulo,), is_select=True)
+        if df_espera is not None and not df_espera.empty:
+            # 6. Eliminar el préstamo solicitado de este usuario
+            query_del_solicitado = "DELETE FROM prestamo WHERE id_libro = %s AND dni = %s AND LOWER(estado) = 'solicitado'"
+            execute_query(query_del_solicitado, (id_libro, dni), is_select=False)
+            # 7. Crear un nuevo préstamo activo para este usuario
+            fecha_prestamo = datetime.now().date()
+            fecha_devolucion = fecha_prestamo + timedelta(days=7)
+            query_insert = """
+                INSERT INTO prestamo (id_libro, dni, fecha_prestamo, fecha_devolucion, estado)
+                VALUES (%s, %s, %s, %s, 'activo')
+            """
+            execute_query(query_insert, (id_libro, dni, fecha_prestamo, fecha_devolucion), is_select=False)
+            # 8. Borrar de lista_de_espera
+            query_del = "DELETE FROM lista_de_espera WHERE titulo = %s AND dni = %s"
+            execute_query(query_del, (titulo, dni), is_select=False)
+            # 9. Restar 1 a orden_de_llegada de los demás en lista_de_espera para ese título
+            query_update_orden = "UPDATE lista_de_espera SET orden_de_llegada = orden_de_llegada - 1 WHERE titulo = %s AND orden_de_llegada > 1"
+            execute_query(query_update_orden, (titulo,), is_select=False)
+    return True

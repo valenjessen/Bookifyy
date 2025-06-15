@@ -55,33 +55,72 @@ def mis_prestamos_alumno():
                 elif estado == "vencido":
                     st.error(f"### {titulos[idx]}")
                 else:
-                    st.markdown(f"### {titulos[idx]}")
+                    # Cambiar a warning (amarillo) para solicitados
+                    st.warning(f"### {titulos[idx]}")
+                
                 if estado != "solicitado":
                     prestamos_estado = loans[loans['estado'].str.lower() == estado]
                     if not prestamos_estado.empty:
                         for i, row in prestamos_estado.iterrows():
-                            with st.container():
-                                st.markdown(f"**Título:** {row['titulo']}")
-                                if 'autor' in row:
-                                    st.markdown(f"**Autor:** {row['autor']}")
-                                # Solo mostrar fechas si NO es solicitado
-                                if estado in ["activo", "vencido"]:
-                                    st.markdown(f"**Fecha de préstamo:** {row['fecha_prestamo']}")
-                                    st.markdown(f"**Fecha de devolución:** {row['fecha_devolucion']}")
-                                st.markdown("---")
-                    else:
-                        st.info(f"No tienes préstamos {titulos[idx].lower()}.")
+                            # Contenedor enmarcado para cada préstamo
+                            st.markdown(f"""
+                                <div class="prestamo-card">
+                                    <div class="prestamo-content">
+                                        <p><strong>Título:</strong> {row['titulo']}</p>
+                                        {'<p><strong>Autor:</strong> ' + str(row['autor']) + '</p>' if 'autor' in row else ''}
+                                        <p><strong>Fecha de préstamo:</strong> {row['fecha_prestamo']}</p>
+                                        <p><strong>Fecha de devolución:</strong> {row['fecha_devolucion']}</p>
+                                    </div>
+                                </div>
+                            """, unsafe_allow_html=True)
+                            # --- Botón pedir extensión ---
+                            key_ext = f"ext_{row['id_libro']}_{dni_usuario}_{estado}"
+                            if st.button("Pedir extensión", key=key_ext):
+                                # Chequear si hay algún préstamo solicitado para este libro
+                                query_check = "SELECT COUNT(*) as cantidad FROM prestamo WHERE id_libro = %s AND LOWER(estado) = 'solicitado'"
+                                result = execute_query(query_check, (row['id_libro'],), is_select=True)
+                                if result is not None and not result.empty and int(result.iloc[0]['cantidad']) > 0:
+                                    st.warning("No se puede extender el préstamo: hay solicitudes pendientes para este libro.")
+                                else:
+                                    from datetime import datetime, timedelta
+                                    nueva_fecha = datetime.now().date() + timedelta(days=7)
+                                    query_update = "UPDATE prestamo SET fecha_devolucion = %s, estado = 'activo' WHERE id_libro = %s AND dni = %s AND (LOWER(estado) = 'activo' OR LOWER(estado) = 'vencido')"
+                                    execute_query(query_update, (nueva_fecha, row['id_libro'], dni_usuario), is_select=False)
+                                    st.success("¡Préstamo extendido exitosamente!")
                 else:
                     # Mostrar solicitados con orden_de_llegada
                     solicitados = get_user_requested_loans_with_order(dni_usuario)
                     if solicitados is not None and not solicitados.empty:
                         for i, row in solicitados.iterrows():
-                            with st.container():
-                                st.markdown(f"**Título:** {row['titulo']}")
-                                if 'autor' in row:
-                                    st.markdown(f"**Autor:** {row['autor']}")
-                                st.markdown(f"**Orden en lista de espera:** {row['orden_de_llegada']}")
-                                st.markdown("---")
+                            # Contenedor enmarcado para cada préstamo solicitado
+                            st.markdown(f"""
+                                <div class="prestamo-card">
+                                    <div class="prestamo-content">
+                                        <p><strong>Título:</strong> {row['titulo']}</p>
+                                        {'<p><strong>Autor:</strong> ' + str(row['autor']) + '</p>' if 'autor' in row else ''}
+                                        <p><strong>Orden en lista de espera:</strong> {row['orden_de_llegada']}</p>
+                                    </div>
+                                </div>
+                            """, unsafe_allow_html=True)
+                            # --- Botón pedir extensión para solicitados ---
+                            key_ext_sol = f"extsol_{row['titulo']}_{dni_usuario}"
+                            if st.button("Pedir extensión", key=key_ext_sol):
+                                # Chequear si hay algún préstamo solicitado para este libro
+                                # Primero obtener id_libro a partir del título
+                                query_id = "SELECT id_libro FROM libros WHERE titulo = %s"
+                                df_id = execute_query(query_id, (row['titulo'],), is_select=True)
+                                if df_id is not None and not df_id.empty:
+                                    id_libro = int(df_id.iloc[0]['id_libro'])
+                                    query_check = "SELECT COUNT(*) as cantidad FROM prestamo WHERE id_libro = %s AND LOWER(estado) = 'solicitado'"
+                                    result = execute_query(query_check, (id_libro,), is_select=True)
+                                    if result is not None and not result.empty and int(result.iloc[0]['cantidad']) > 0:
+                                        st.warning("No se puede extender el préstamo: hay solicitudes pendientes para este libro.")
+                                    else:
+                                        from datetime import datetime, timedelta
+                                        nueva_fecha = datetime.now().date() + timedelta(days=7)
+                                        query_update = "UPDATE prestamo SET fecha_devolucion = %s, estado = 'activo' WHERE id_libro = %s AND dni = %s AND LOWER(estado) = 'solicitado'"
+                                        execute_query(query_update, (nueva_fecha, id_libro, dni_usuario), is_select=False)
+                                        st.success("¡Préstamo extendido exitosamente!")
                     else:
                         st.info("No tienes préstamos solicitados.")
     else:
@@ -142,7 +181,41 @@ def mis_prestamos_alumno():
             opacity: 0.8;
             color: var(--color-primary);
         }
-    
+
+        /* Estilos para las tarjetas de préstamos */
+        .prestamo-card {
+            background-color: white;
+            border: 2px solid var(--color-light);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(117, 81, 14, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: auto;
+            min-height: 120px;
+        }
+
+        .prestamo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(117, 81, 14, 0.15);
+        }
+
+        .prestamo-content {
+            padding: 1rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .prestamo-content p {
+            margin: 0.3rem 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .prestamo-content p:last-child {
+            margin-bottom: 0;
+        }
     
         /* Botones personalizados */
         .stButton > button {
