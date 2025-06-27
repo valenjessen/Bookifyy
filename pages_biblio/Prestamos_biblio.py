@@ -7,7 +7,6 @@ import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-
 def prestamos_biblio():
     """Página para mostrar TODOS los préstamos de la biblioteca"""
 
@@ -22,15 +21,6 @@ def prestamos_biblio():
     # Barra de búsqueda
     search_query = st.text_input("🔎 Buscar por título, ID libro o nombre de usuario", "")
 
-    # Mensajes informativos más chicos y con menos espacio
-    st.markdown(
-        "<div style='font-size:1.1rem; margin-bottom:0.1em; font-weight:600;'>Gestión de Préstamos</div>",
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        "<div style='font-size:0.95rem; margin-bottom:0.5em; margin-top:0em;'>Aquí puedes ver y gestionar todos los préstamos de la biblioteca.</div>",
-        unsafe_allow_html=True
-    )
 
     # Obtener todos los préstamos
     loans = get_loans()
@@ -50,6 +40,9 @@ def prestamos_biblio():
             st.warning("No se encontraron préstamos que coincidan con la búsqueda.")
             return
 
+        # Mostrar cantidad total de préstamos
+        st.markdown(f"<div style='font-size:1.1rem; margin-bottom:0.5em;'><strong>Cantidad total de préstamos: {len(loans_filtered)}</strong></div>", unsafe_allow_html=True)
+
         estados = ["activo", "vencido", "solicitado"]
         titulos = ["Activos", "Vencidos", "Solicitados"]
         col1, col2, col3 = st.columns(3)
@@ -63,26 +56,25 @@ def prestamos_biblio():
                 elif estado == "vencido":
                     st.error(f"### {titulos[idx]}")
                 else:
-                    # Cambiar a warning (amarillo) para solicitados
                     st.warning(f"### {titulos[idx]}")
-                
+                # Mostrar cantidad de préstamos de este estado
                 if estado != "solicitado":
                     prestamos_estado = loans_filtered[loans_filtered['estado'].str.lower() == estado]
+                    st.markdown(f"Cantidad: <strong>{len(prestamos_estado)}</strong>", unsafe_allow_html=True)
                     if not prestamos_estado.empty:
                         for i, row in prestamos_estado.iterrows():
-                            # Contenedor enmarcado para cada préstamo
-                            st.markdown(f"""
-                                <div class="prestamo-card">
-                                    <div class="prestamo-content">
-                                        <p><strong>Título:</strong> {row['titulo']}</p>
-                                        {'<p><strong>Autor:</strong> ' + str(row['autor']) + '</p>' if 'autor' in row and pd.notna(row['autor']) else ''}
-                                        <p><strong>Usuario:</strong> {row['nombre']} (DNI: {row['dni']})</p>
-                                        <p><strong>ID Libro:</strong> {row['id_libro']}</p>
-                                        <p><strong>Fecha de préstamo:</strong> {row['fecha_prestamo']}</p>
-                                        <p><strong>Fecha de devolución:</strong> {row['fecha_devolucion']}</p>
-                                    </div>
-                                </div>
-                            """, unsafe_allow_html=True)
+                            st.markdown(
+                                "<div class=\"prestamo-card\">"
+                                "<div class=\"prestamo-content\">"
+                                f"<p><strong>Título:</strong> {row['titulo']}</p>"
+                                f"{'<p><strong>Autor:</strong> ' + str(row['autor']) + '</p>' if 'autor' in row and pd.notna(row['autor']) else ''}"
+                                f"<p><strong>Usuario:</strong> {row['nombre']} (DNI: {row['dni']})</p>"
+                                f"<p><strong>ID Libro:</strong> {row['id_libro']}</p>"
+                                f"<p><strong>Fecha de préstamo:</strong> {row['fecha_prestamo']}</p>"
+                                f"<p><strong>Fecha de devolución:</strong> {row['fecha_devolucion']}</p>"
+                                "</div></div>",
+                                unsafe_allow_html=True
+                            )
                             
                             # Botones para activos y vencidos
                             if estado in ["activo", "vencido"]:
@@ -94,7 +86,6 @@ def prestamos_biblio():
                                         st.success("Libro devuelto correctamente. Si había alguien en lista de espera, se activó su préstamo.")
                                     else:
                                         st.error("Error al procesar la devolución del libro.")
-                               
                 else:
                     # Mostrar solicitados con orden_de_llegada
                     solicitados = get_requested_loans_with_order()
@@ -108,21 +99,23 @@ def prestamos_biblio():
                             ]
                         else:
                             solicitados_filtered = solicitados
-                            
+                        st.markdown(f"Cantidad: <strong>{len(solicitados_filtered)}</strong>", unsafe_allow_html=True)
                         if not solicitados_filtered.empty:
                             for i, row in solicitados_filtered.iterrows():
-                                # Contenedor enmarcado para cada préstamo solicitado
-                                st.markdown(f"""
-                                    <div class="prestamo-card">
-                                        <div class="prestamo-content">
-                                            <p><strong>Título:</strong> {row['titulo']}</p>
-                                            {'<p><strong>Autor:</strong> ' + str(row['autor']) + '</p>' if 'autor' in row and pd.notna(row['autor']) else ''}
-                                            <p><strong>Usuario:</strong> {row['nombre']} (DNI: {row['dni']})</p>
-                                            <p><strong>ID Libro:</strong> {row['id_libro']}</p>
-                                            {f'<p><strong>Orden en lista de espera:</strong> {row["orden_de_llegada"]}</p>' if not pd.isna(row.get('orden_de_llegada', None)) else ''}
-                                        </div>
-                                    </div>
-                                """, unsafe_allow_html=True)
+                                orden = ""
+                                if 'orden_de_llegada' in row and not pd.isna(row['orden_de_llegada']):
+                                    orden = f"<p><strong>Orden en lista de espera:</strong> {row['orden_de_llegada']}</p>"
+                                st.markdown(
+                                    "<div class=\"prestamo-card\">"
+                                    "<div class=\"prestamo-content\">"
+                                    f"<p><strong>Título:</strong> {row['titulo']}</p>"
+                                    f"{'<p><strong>Autor:</strong> ' + str(row['autor']) + '</p>' if 'autor' in row and pd.notna(row['autor']) else ''}"
+                                    f"<p><strong>Usuario:</strong> {row['nombre']} (DNI: {row['dni']})</p>"
+                                    f"<p><strong>ID Libro:</strong> {row['id_libro']}</p>"
+                                    f"{orden}"
+                                    "</div></div>",
+                                    unsafe_allow_html=True
+                                )
                         else:
                             st.info("No hay préstamos solicitados que coincidan con la búsqueda.")
                     else:

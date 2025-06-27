@@ -1,7 +1,7 @@
 #no cambia la contrasena en la base de datos
 
 import streamlit as st
-from functions import get_user_complete_info, update_user_password, update_user_academic_info
+from functions import get_user_complete_info, update_user_password, update_user_academic_info, get_facultades, get_carreras_por_facultad
 
 def user_alumno():
     """Página de perfil para alumnos"""
@@ -97,36 +97,61 @@ def user_alumno():
                     </div>
                 """, unsafe_allow_html=True)
         else:
+
             st.markdown("**Completa tu información académica:**")
 
-            with st.form("academic_info_form"):
-                col1, col2 = st.columns(2)
+            facultades_df = get_facultades()
+            facultades = facultades_df["facultad"].tolist() if not facultades_df.empty else []
 
-                with col1:
-                    facultad_input = st.text_input("Facultad", value=facultad_actual, placeholder="Ej: Facultad de Ingeniería")
+            facultad_guardada = st.session_state.get("facultad_guardada", facultad_actual)
+            carrera_guardada = st.session_state.get("carrera_guardada", carrera_actual)
 
-                with col2:
-                    carrera_input = st.text_input("Carrera", value=carrera_actual, placeholder="Ej: Ingeniería Informática")
+            colf, colc = st.columns(2)
 
-                submitted_academic = st.form_submit_button("Guardar información académica")
+            with colf:
+                facultad_select = st.selectbox(
+                    "Facultad",
+                    facultades,
+                    index=facultades.index(facultad_guardada) if facultad_guardada in facultades else 0,
+                    key="facultad_select"
+                )
+                guardar_facultad = st.button("Guardar facultad")
+                if guardar_facultad:
+                    st.session_state["facultad_guardada"] = facultad_select
+                    st.session_state["carrera_guardada"] = ""  # Reset carrera al cambiar facultad
+                    st.success("Facultad guardada. Ahora seleccioná tu carrera.")
 
-                if submitted_academic:
-                    if facultad_input and carrera_input:
+            with colc:
+                facultad_elegida = st.session_state.get("facultad_guardada", "")
+                if facultad_elegida:
+                    carreras_df = get_carreras_por_facultad(facultad_elegida)
+                    carreras = carreras_df["carrera"].tolist() if not carreras_df.empty else []
+                else:
+                    carreras = []
+                carrera_select = st.selectbox(
+                    "Carrera",
+                    carreras,
+                    index=carreras.index(carrera_guardada) if carrera_guardada in carreras else 0,
+                    key="carrera_select",
+                    disabled=not facultad_elegida
+                )
+                guardar_carrera = st.button("Guardar carrera", disabled=not facultad_elegida)
+                if guardar_carrera and facultad_elegida:
+                    if carrera_select:
                         try:
-                            success = update_user_academic_info(facultad_input, carrera_input, mail_usuario)
+                            success = update_user_academic_info(facultad_elegida, carrera_select, mail_usuario)
                             if success:
                                 st.success("✅ Información académica actualizada correctamente")
-                                st.session_state["facultad"] = facultad_input
-                                st.session_state["carrera"] = carrera_input
+                                st.session_state["carrera_guardada"] = carrera_select
+                                st.session_state["facultad"] = facultad_elegida
+                                st.session_state["carrera"] = carrera_select
                                 st.rerun()
                             else:
                                 st.error("❌ No se pudo actualizar la información académica.")
                         except Exception as e:
                             st.error(f"❌ Error al actualizar la información: {str(e)}")
                     else:
-                        st.error("Por favor completa ambos campos")
-
-        st.markdown("---")
+                        st.error("Por favor seleccioná una carrera")
 
         # Cambio de contraseña
         st.markdown("### 🔐 Cambiar Contraseña")

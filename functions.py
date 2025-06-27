@@ -426,3 +426,27 @@ def libro_devuelto_func(id_libro):
                 query = "UPDATE libros SET disponibilidad = TRUE WHERE id_libro = %s"
                 execute_query(query, (id_libro,), is_select=False)
     return True
+
+def get_facultades():
+    """
+    Devuelve la lista de facultades únicas de la tabla carreras_por_facultad.
+    """
+    query = """
+        SELECT DISTINCT facultad
+        FROM carreras_por_facultad
+        ORDER BY facultad
+    """
+    return execute_query(query, is_select=True)
+
+def get_carreras_por_facultad(facultad):
+    """
+    Devuelve la lista de carreras para una facultad dada desde la tabla carreras_por_facultad.
+    """
+    query = """
+        SELECT carrera
+        FROM carreras_por_facultad
+        WHERE facultad = %s
+        ORDER BY carrera
+    """
+    params = (facultad,)
+    return execute_query(query, params, is_select=True)
