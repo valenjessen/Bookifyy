@@ -146,13 +146,30 @@ st.markdown("""
         background-color: #f5f6fa !important;
         color: #75510e !important;
     }
-    .stTextInput > div > div > input:focus,
+    /* Botón del ojo para mostrar/ocultar contraseña */
+    .stTextInput > div > div > button {
+        background-color: #f5f6fa !important;
+        border-radius: 8px !important;
+        border: 2px solid var(--color-light) !important;
+        color: #75510e !important;
+        margin-left: 0.5rem;
+        transition: background 0.2s;
+    }
+    .stTextInput > div > div > button:hover {
+        background-color: #e9e9ec !important;
+    }
+    /* Selectores personalizados (dropdowns) */
+    .stSelectbox > div > div > select,
+    .stSelectbox > div > div > div[data-baseweb="select"] {
+        background-color: #f5f6fa !important;
+        color: #75510e !important;
+        border-radius: 8px !important;
+        border: 2px solid var(--color-light) !important;
+    }
     .stSelectbox > div > div > select:focus,
-    .stNumberInput > div > input:focus,
-    .stDateInput > div > input:focus,
-    .stTextArea > div > textarea:focus {
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(117, 81, 14, 0.1);
+    .stSelectbox > div > div > div[data-baseweb="select"]:focus {
+        border-color: var(--color-primary) !important;
+        box-shadow: 0 0 0 3px rgba(117, 81, 14, 0.1) !important;
     }
     /* Botones blancos para sign up y log in */
     .stForm button[type="submit"] {
