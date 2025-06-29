@@ -296,6 +296,3 @@ def busqueda_libros_alumno():
         st.balloons()
         st.session_state.prestamo_exitoso = False
         st.session_state.prestamo_libro_id = None
-
-    st.write("DataFrame de libros:", df)
-    st.write("Cantidad de libros:", len(df) if hasattr(df, '__len__') else 'No es DataFrame')
