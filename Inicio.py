@@ -135,17 +135,38 @@ st.markdown("""
     
     /* Inputs personalizados */
     .stTextInput > div > div > input,
-    .stSelectbox > div > div > select {
+    .stSelectbox > div > div > select,
+    .stNumberInput > div > input,
+    .stDateInput > div > input,
+    .stTextArea > div > textarea {
         border: 2px solid var(--color-light);
         border-radius: 8px;
         padding: 0.75rem;
         font-family: 'Libre Baskerville', serif;
+        background-color: #f5f6fa !important;
+        color: #75510e !important;
     }
-    
     .stTextInput > div > div > input:focus,
-    .stSelectbox > div > div > select:focus {
+    .stSelectbox > div > div > select:focus,
+    .stNumberInput > div > input:focus,
+    .stDateInput > div > input:focus,
+    .stTextArea > div > textarea:focus {
         border-color: var(--color-primary);
         box-shadow: 0 0 0 3px rgba(117, 81, 14, 0.1);
+    }
+    /* Botones blancos para sign up y log in */
+    .stForm button[type="submit"] {
+        background-color: white !important;
+        color: #75510e !important;
+        border: 1.5px solid #75510e !important;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .stForm button[type="submit"]:hover {
+        background-color: #f5e0b9 !important;
+        color: #75510e !important;
+        border: 1.5px solid #75510e !important;
     }
     
     /* Radio buttons */
