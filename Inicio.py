@@ -138,15 +138,25 @@ st.markdown("""
     .stSelectbox > div > div > select,
     .stNumberInput > div > input,
     .stDateInput > div > input,
-    .stTextArea > div > textarea {
-        border: 2px solid var(--color-light);
-        border-radius: 8px;
-        padding: 0.75rem;
-        font-family: 'Libre Baskerville', serif;
+    .stTextArea > div > textarea,
+    .stSelectbox > div > div > div[data-baseweb="select"],
+    .stSelectbox > div > div > div[data-baseweb="select"] > div {
+        background-color: #f5f6fa !important;
+        color: #75510e !important;
+        border-radius: 8px !important;
+        border: 2px solid var(--color-light) !important;
+    }
+    /* Forzar color de los items del dropdown (opciones) */
+    .stSelectbox ul[role="listbox"] > li,
+    .stSelectbox ul[role="listbox"] > li > div {
         background-color: #f5f6fa !important;
         color: #75510e !important;
     }
-    /* Botón del ojo para mostrar/ocultar contraseña */
+    /* Botón del ojo y wrapper de contraseña */
+    .stTextInput > div > div {
+        background-color: #f5f6fa !important;
+        border-radius: 8px !important;
+    }
     .stTextInput > div > div > button {
         background-color: #f5f6fa !important;
         border-radius: 8px !important;
