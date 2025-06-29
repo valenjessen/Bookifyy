@@ -450,3 +450,13 @@ def get_carreras_por_facultad(facultad):
     """
     params = (facultad,)
     return execute_query(query, params, is_select=True)
+
+def get_logo_url():
+    """
+    Devuelve el URL del logo desde la tabla logo (primer valor de la columna url).
+    """
+    query = "SELECT url FROM logo LIMIT 1"
+    df = execute_query(query, is_select=True)
+    if df is not None and not df.empty:
+        return df.iloc[0]["url"]
+    return None

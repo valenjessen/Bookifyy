@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Importar solo las funciones necesarias inicialmente
-from functions import add_person, verify_credentials, get_user_info, verify_credentials_with_type
+from functions import add_person, verify_credentials, get_user_info, verify_credentials_with_type, get_logo_url
 
 # NO importar las páginas aquí - las importaremos dinámicamente cuando sea necesario
 
@@ -336,7 +336,7 @@ else:
 
     # Sidebar con navegación
     with st.sidebar:
-        st.markdown(f"### Hola, {nombre}")
+        st.markdown(f"<span style='color:white; font-size:1.3rem;'>Hola, {nombre}</span>", unsafe_allow_html=True)
         st.markdown("---")
         
         if st.button("🏠 Inicio", use_container_width=True, key="nav_home"):
@@ -363,13 +363,15 @@ else:
     
     if current_page == "home":
         # --- PÁGINA DE INICIO ---
-        st.markdown(f"""
+        logo_url = get_logo_url()
+        st.markdown(f'''
             <div class="welcome-container">
                 <div>
-                    <h2 class="welcome-message">{st.session_state.get('welcome_message', '¡Bienvenido/a!')}</h2>
+                    {f'<img src="{logo_url}" alt="Logo" style="display:block;margin-left:auto;margin-right:auto;width:180px;height:auto;max-width:100%;margin-bottom:2rem;" />' if logo_url else ''}
+                    <h2 class="welcome-message" style="margin-left:2.5rem;">{st.session_state.get('welcome_message', '¡Bienvenido/a!')}</h2>
                 </div>
             </div>
-        """, unsafe_allow_html=True)
+        ''', unsafe_allow_html=True)
         
         # Mostrar información del usuario (aquí no cambia nada)
         col1, col2, col3 = st.columns([1, 2, 1])
