@@ -186,6 +186,12 @@ st.markdown("""
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
+    
+    /* Etiquetas de los inputs (títulos de áreas a completar) */
+    label, .stTextInput label, .stSelectbox label, .stForm label, .stNumberInput label, .stDateInput label, .stTextArea label {
+        color: #75510e !important;
+        font-weight: 600;
+    }
     </style>
 """, unsafe_allow_html=True)
 
