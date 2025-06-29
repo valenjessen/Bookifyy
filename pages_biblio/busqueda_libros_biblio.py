@@ -233,7 +233,10 @@ def busqueda_libros_biblio():
                 with st.container():
                     col1, col2 = st.columns([1, 2])
                     with col1:
-                        st.image("https://via.placeholder.com/200x300/cccccc/666666?text=Sin+Portada", width=200)
+                        url_portada = libro_detalle.get("url_portada") if isinstance(libro_detalle, dict) else libro_detalle["url_portada"]
+                        if not url_portada or str(url_portada).lower() == "null":
+                            url_portada = "https://via.placeholder.com/200x300/cccccc/666666?text=Sin+Portada"
+                        st.image(url_portada, width=200)
                     with col2:
                         st.markdown(f"### {libro_detalle['titulo']}")
                         st.markdown(f"*Autor:* {libro_detalle['autor']}")
