@@ -459,7 +459,7 @@ else:
             if user_type == "Bibliotecario":
                 st.markdown("Gestión de préstamos")
                 # Importar y ejecutar la vista de préstamos (bibliotecario)
-                from pages_biblio.borrador import Prestamos_biblio
+                from pages_biblio.Prestamos_biblio import prestamos_biblio
                 prestamos_biblio()
             else:
                 
