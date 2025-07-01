@@ -295,4 +295,4 @@ def prestamos_biblio():
             text-align: center;
         }
         </style>
-    """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True) ##
