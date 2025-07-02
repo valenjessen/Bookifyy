@@ -102,25 +102,7 @@ def mis_prestamos_alumno():
                                     </div>
                                 </div>
                             """, unsafe_allow_html=True)
-                            # --- Botón pedir extensión para solicitados ---
-                            key_ext_sol = f"extsol_{row['titulo']}_{dni_usuario}"
-                            if st.button("Pedir extensión", key=key_ext_sol):
-                                # Chequear si hay algún préstamo solicitado para este libro
-                                # Primero obtener id_libro a partir del título
-                                query_id = "SELECT id_libro FROM libros WHERE titulo = %s"
-                                df_id = execute_query(query_id, (row['titulo'],), is_select=True)
-                                if df_id is not None and not df_id.empty:
-                                    id_libro = int(df_id.iloc[0]['id_libro'])
-                                    query_check = "SELECT COUNT(*) as cantidad FROM prestamo WHERE id_libro = %s AND LOWER(estado) = 'solicitado'"
-                                    result = execute_query(query_check, (id_libro,), is_select=True)
-                                    if result is not None and not result.empty and int(result.iloc[0]['cantidad']) > 0:
-                                        st.warning("No se puede extender el préstamo: hay solicitudes pendientes para este libro.")
-                                    else:
-                                        from datetime import datetime, timedelta
-                                        nueva_fecha = datetime.now().date() + timedelta(days=7)
-                                        query_update = "UPDATE prestamo SET fecha_devolucion = %s, estado = 'activo' WHERE id_libro = %s AND dni = %s AND LOWER(estado) = 'solicitado'"
-                                        execute_query(query_update, (nueva_fecha, id_libro, dni_usuario), is_select=False)
-                                        st.success("¡Préstamo extendido exitosamente!")
+                           
                     else:
                         st.info("No tienes préstamos solicitados.")
     else:
